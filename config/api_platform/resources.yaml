@@ -1,0 +1,17 @@
+resources:
+  App\Entity\Pays:
+    collectionOperations:
+      get: ~
+      init:
+        method: POST
+        path: /pays/init
+        controller: App\Controller\Administration\PaysController::initPays
+        read: false
+        normalization_context:
+          groups: ['read.Pays']
+        security : 'is_granted("ROLE_ADMIN")'
+      post:
+        security: 'is_granted("ROLE_ADMIN")'
+    itemOperations:
+      get: ~
+
