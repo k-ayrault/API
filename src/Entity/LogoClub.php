@@ -27,6 +27,11 @@ class LogoClub
      */
     private $club;
 
+    public function __construct(string $lien)
+    {
+        $this->setLien($lien);
+    }
+
     public function getId(): ?int
     {
         return $this->id;

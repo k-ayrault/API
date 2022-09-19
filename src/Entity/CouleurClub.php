@@ -18,14 +18,14 @@ class CouleurClub
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=6)
+     * @ORM\Column(type="string", length=6, unique=true)
      */
     private $hexa;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Club::class, inversedBy="couleurs")
-     */
-    private $club;
+    public function __construct(string $hexa)
+    {
+        $this->setHexa($hexa);
+    }
 
     public function getId(): ?int
     {
@@ -40,18 +40,6 @@ class CouleurClub
     public function setHexa(string $hexa): self
     {
         $this->hexa = $hexa;
-
-        return $this;
-    }
-
-    public function getClub(): ?Club
-    {
-        return $this->club;
-    }
-
-    public function setClub(?Club $club): self
-    {
-        $this->club = $club;
 
         return $this;
     }

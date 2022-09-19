@@ -14,4 +14,21 @@ resources:
         security: 'is_granted("ROLE_ADMIN")'
     itemOperations:
       get: ~
-
+  App\Entity\Club:
+    collectionOperations:
+      scrapp:
+        method: POST
+        path: /club/scrapp
+        controller: App\Controller\Administration\ScrappController::scrappClubs
+        validate: false
+        normalization_context:
+          groups: ['read.Club']
+      save_scrapp:
+        method: POST
+        path: /club/save_scrapp
+        controller: App\Controller\Administration\ScrappController::saveScrapp
+        validate: false
+        normalization_context:
+          groups: ['read.Club']
+    itemOperations:
+      get: ~

@@ -6,6 +6,7 @@ use App\Repository\ClubRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity(repositoryClass=ClubRepository::class)
@@ -16,6 +17,7 @@ class Club
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
+     * @Groups ({"read.Pays"})
      */
     private $id;
 
@@ -25,7 +27,7 @@ class Club
     private $nom;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Pays::class)
+     * @ORM\ManyToOne(targetEntity=Pays::class, cascade={"persist"})
      * @ORM\JoinColumn(referencedColumnName="code")
      */
     private $pays;
@@ -41,19 +43,24 @@ class Club
     private $site_web;
 
     /**
-     * @ORM\OneToMany(targetEntity=LogoClub::class, mappedBy="club")
+     * @ORM\OneToMany(targetEntity=LogoClub::class, mappedBy="club", cascade={"persist", "remove"})
      */
     private $logos;
-
-    /**
-     * @ORM\OneToMany(targetEntity=CouleurClub::class, mappedBy="club")
-     */
-    private $couleurs;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
     private $id_transfermarkt;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Stade::class, cascade={"persist", "remove"})
+     */
+    private $stade;
+
+    /**
+     * @ORM\ManyToMany(targetEntity=CouleurClub::class, cascade={"persist"})
+     */
+    private $couleurs;
 
     public function __construct()
     {
@@ -144,6 +151,30 @@ class Club
         return $this;
     }
 
+    public function getIdTransfermarkt(): ?int
+    {
+        return $this->id_transfermarkt;
+    }
+
+    public function setIdTransfermarkt(?int $id_transfermarkt): self
+    {
+        $this->id_transfermarkt = $id_transfermarkt;
+
+        return $this;
+    }
+
+    public function getStade(): ?Stade
+    {
+        return $this->stade;
+    }
+
+    public function setStade(?Stade $stade): self
+    {
+        $this->stade = $stade;
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, CouleurClub>
      */
@@ -156,7 +187,6 @@ class Club
     {
         if (!$this->couleurs->contains($couleur)) {
             $this->couleurs[] = $couleur;
-            $couleur->setClub($this);
         }
 
         return $this;
@@ -164,24 +194,7 @@ class Club
 
     public function removeCouleur(CouleurClub $couleur): self
     {
-        if ($this->couleurs->removeElement($couleur)) {
-            // set the owning side to null (unless already changed)
-            if ($couleur->getClub() === $this) {
-                $couleur->setClub(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function getIdTransfermarkt(): ?int
-    {
-        return $this->id_transfermarkt;
-    }
-
-    public function setIdTransfermarkt(?int $id_transfermarkt): self
-    {
-        $this->id_transfermarkt = $id_transfermarkt;
+        $this->couleurs->removeElement($couleur);
 
         return $this;
     }

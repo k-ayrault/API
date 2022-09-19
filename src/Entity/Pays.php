@@ -33,6 +33,11 @@ class Pays
      */
     private $drapeau;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $nom_fr;
+
     public function getCode(): ?string
     {
         return $this->code;
@@ -65,6 +70,18 @@ class Pays
     public function setDrapeau(?string $drapeau): self
     {
         $this->drapeau = $drapeau;
+
+        return $this;
+    }
+
+    public function getNomFr(): ?string
+    {
+        return $this->nom_fr;
+    }
+
+    public function setNomFr(?string $nom_fr): self
+    {
+        $this->nom_fr = $nom_fr;
 
         return $this;
     }

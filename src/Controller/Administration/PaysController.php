@@ -49,7 +49,8 @@ class PaysController
                 if (!$this->rep->find($code)) {
                     $pays = new Pays();
                     $pays->setCode($code);
-                    $pays->setNom($country);
+                    $pays->setNom($country["nom"]);
+                    $pays->setNomFr($country["nom_fr"]);
                     $drapeau_lien = str_replace("{code}", $code, $this->lienImgPays);
                     $pays->setDrapeau($drapeau_lien);
                     $this->rep->add($pays, true);
