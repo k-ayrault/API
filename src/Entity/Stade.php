@@ -46,7 +46,7 @@ class Stade
     private $annee_construction;
 
     /**
-     * @ORM\OneToMany(targetEntity=ImageStade::class, mappedBy="stade")
+     * @ORM\OneToMany(targetEntity=ImageStade::class, mappedBy="stade", cascade={"persist", "remove"}, fetch="EAGER")
      */
     private $images;
 

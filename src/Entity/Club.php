@@ -7,6 +7,8 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Doctrine\ORM\Mapping\JoinColumn;
+use Doctrine\ORM\Mapping\JoinTable;
 
 /**
  * @ORM\Entity(repositoryClass=ClubRepository::class)
@@ -27,7 +29,7 @@ class Club
     private $nom;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Pays::class, cascade={"persist"})
+     * @ORM\ManyToOne(targetEntity=Pays::class, cascade={"persist"}, fetch="EAGER")
      * @ORM\JoinColumn(referencedColumnName="code")
      */
     private $pays;
@@ -43,7 +45,7 @@ class Club
     private $site_web;
 
     /**
-     * @ORM\OneToMany(targetEntity=LogoClub::class, mappedBy="club", cascade={"persist", "remove"})
+     * @ORM\OneToMany(targetEntity=LogoClub::class, mappedBy="club", cascade={"persist", "remove"}, fetch="EAGER")
      */
     private $logos;
 
@@ -53,12 +55,16 @@ class Club
     private $id_transfermarkt;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Stade::class, cascade={"persist", "remove"})
+     * @ORM\ManyToOne(targetEntity=Stade::class, cascade={"persist", "remove"}, fetch="EAGER")
      */
     private $stade;
 
     /**
      * @ORM\ManyToMany(targetEntity=CouleurClub::class, cascade={"persist"})
+     * @JoinTable(name="club_couleur_club",
+     *      joinColumns={@JoinColumn(name="club_id", referencedColumnName="id")},
+     *      inverseJoinColumns={@JoinColumn(name="couleur_club_id", referencedColumnName="id")}
+     * )
      */
     private $couleurs;
 

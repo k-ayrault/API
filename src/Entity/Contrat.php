@@ -35,9 +35,14 @@ class Contrat
     private $fin;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Club::class)
+     * @ORM\ManyToOne(targetEntity=Club::class, cascade={"persist", "remove"}, fetch="EAGER")
      */
     private $club;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Joueur::class, inversedBy="contrats", cascade={"persist", "remove"})
+     */
+    private $joueur;
 
     public function getId(): ?int
     {
@@ -76,6 +81,18 @@ class Contrat
     public function setClub(?Club $club): self
     {
         $this->club = $club;
+
+        return $this;
+    }
+
+    public function getJoueur(): ?Joueur
+    {
+        return $this->joueur;
+    }
+
+    public function setJoueur(?Joueur $joueur): self
+    {
+        $this->joueur = $joueur;
 
         return $this;
     }

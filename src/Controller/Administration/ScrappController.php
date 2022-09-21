@@ -28,6 +28,7 @@ class ScrappController
     public function saveScrapp() {
         try {
             $this->scrappService->saveClubScrapp();
+            $this->scrappService->saveJoueursScrapp();
             return new JsonResponse(["pass"=> true]);
         } catch (\Exception $e) {
             return new JsonResponse(["pass"=> false, "message" => $e->getMessage()]);

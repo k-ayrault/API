@@ -23,7 +23,7 @@ class LogoClub
     private $lien;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Club::class, inversedBy="logos")
+     * @ORM\ManyToOne(targetEntity=Club::class, inversedBy="logos", cascade={"persist"})
      */
     private $club;
 

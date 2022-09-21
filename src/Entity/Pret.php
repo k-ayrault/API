@@ -21,6 +21,11 @@ class Pret extends Contrat
      */
     private $montant_option;
 
+    public function __construct()
+    {
+        $this->setOptionAchat(false);
+    }
+
     public function isOptionAchat(): ?bool
     {
         return $this->option_achat;

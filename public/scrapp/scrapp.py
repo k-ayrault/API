@@ -3,6 +3,9 @@ import locale
 from pathlib import Path
 import scrapp_func_global
 import scrapp_func_clubs
+import logging
+
+logging.basicConfig(filename="log.txt", level=logging.DEBUG, encoding="UTF-8")
 
 locale.setlocale(locale.LC_ALL, 'fr_FR')
 
@@ -37,16 +40,9 @@ if json_id_joueurs.exists():
         scrapp_func_global.all_joueurs_id = json.load(id_joueurs_json)
 
 clubs = scrapp_func_clubs.getClubsLigue1()
-# for club in clubs:
-#     print(club["name"] + " : En cours")
-#     scrapp_func_clubs.getInfoClub(club)
-#     scrapp_func_clubs.getJoueursClub(club)
-#     save()
-#     print(club["name"] + " : Saved")
-
-club = clubs[0]
-# print(club["name"] + " : En cours")
-scrapp_func_clubs.getInfoClub(club)
-scrapp_func_clubs.getJoueursClub(club)
-save()
-# print(club["name"] + " : Saved")
+for club in clubs:
+    logging.debug(club["name"] + " : En cours")
+    scrapp_func_clubs.getInfoClub(club)
+    scrapp_func_clubs.getJoueursClub(club)
+    save()
+    logging.debug(club["name"] + " : Saved")

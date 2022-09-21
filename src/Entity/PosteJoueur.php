@@ -32,6 +32,11 @@ class PosteJoueur
      */
     private $joueur;
 
+    public function __construct(bool $principal)
+    {
+        $this->setPrincipal($principal);
+    }
+
     public function getId(): ?int
     {
         return $this->id;

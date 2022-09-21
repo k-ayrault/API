@@ -55,7 +55,7 @@ class InformationsPersonelles
     private $equipementier;
 
     /**
-     * @ORM\ManyToMany(targetEntity=Pays::class)
+     * @ORM\ManyToMany(targetEntity=Pays::class, cascade={"persist"}, fetch="EAGER")
      * @ORM\JoinTable(name="nationnalites_joueur",
      *   joinColumns={
      *     @ORM\JoinColumn(name="informations_personelles_id", referencedColumnName="id")
@@ -67,9 +67,15 @@ class InformationsPersonelles
      */
     private $nationnalites;
 
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $retraite_joueur;
+
     public function __construct()
     {
         $this->nationnalites = new ArrayCollection();
+        $this->setRetraiteJoueur(false);
     }
 
     public function getId(): ?int
@@ -181,6 +187,18 @@ class InformationsPersonelles
     public function removeNationnalite(Pays $nationnalite): self
     {
         $this->nationnalites->removeElement($nationnalite);
+
+        return $this;
+    }
+
+    public function isRetraiteJoueur(): ?bool
+    {
+        return $this->retraite_joueur;
+    }
+
+    public function setRetraiteJoueur(bool $retraite_joueur): self
+    {
+        $this->retraite_joueur = $retraite_joueur;
 
         return $this;
     }

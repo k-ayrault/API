@@ -25,19 +25,25 @@ class Joueur
     private $id_transfermarkt;
 
     /**
-     * @ORM\OneToOne(targetEntity=InformationsPersonelles::class, cascade={"persist", "remove"})
+     * @ORM\OneToOne(targetEntity=InformationsPersonelles::class, cascade={"persist", "remove"}, fetch="EAGER")
      * @ORM\JoinColumn(nullable=false)
      */
     private $informations_personnelles;
 
     /**
-     * @ORM\OneToMany(targetEntity=PosteJoueur::class, mappedBy="joueur")
+     * @ORM\OneToMany(targetEntity=PosteJoueur::class, mappedBy="joueur", cascade={"persist", "remove"}, fetch="EAGER")
      */
     private $postes;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Contrat::class, mappedBy="joueur", cascade={"persist", "remove"}, fetch="EAGER")
+     */
+    private $contrats;
 
     public function __construct()
     {
         $this->postes = new ArrayCollection();
+        $this->contrats = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -93,6 +99,36 @@ class Joueur
             // set the owning side to null (unless already changed)
             if ($poste->getJoueur() === $this) {
                 $poste->setJoueur(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Contrat>
+     */
+    public function getContrats(): Collection
+    {
+        return $this->contrats;
+    }
+
+    public function addContrat(Contrat $contrat): self
+    {
+        if (!$this->contrats->contains($contrat)) {
+            $this->contrats[] = $contrat;
+            $contrat->setJoueur($this);
+        }
+
+        return $this;
+    }
+
+    public function removeContrat(Contrat $contrat): self
+    {
+        if ($this->contrats->removeElement($contrat)) {
+            // set the owning side to null (unless already changed)
+            if ($contrat->getJoueur() === $this) {
+                $contrat->setJoueur(null);
             }
         }
 

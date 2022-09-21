@@ -23,7 +23,7 @@ class ImageStade
     private $lien;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Stade::class, inversedBy="images")
+     * @ORM\ManyToOne(targetEntity=Stade::class, inversedBy="images", cascade={"persist"})
      */
     private $stade;
 

@@ -1,3 +1,5 @@
+import logging
+
 import requests
 import re
 from bs4 import BeautifulSoup
@@ -26,10 +28,10 @@ def getClubsLigue1():
             link = link.replace(scrapp_func_global.transfermarkt_accueil_club,
                                 scrapp_func_global.transfermarkt_url_replace)
             match = (re.search("/verein/", link))
-            name = href[href.find("/") + 1 : href.find("/" + scrapp_func_global.transfermarkt_accueil_club)]
+            name = href[href.find("/") + 1: href.find("/" + scrapp_func_global.transfermarkt_accueil_club)]
             id = link[match.end():]
             id = id[:id.find("/")]
-            clubs.append({"id": id, "link": link, "name" : name})
+            clubs.append({"id": id, "link": link, "name": name})
     return clubs
 
 
@@ -53,61 +55,70 @@ def getInfoClub(club_to_scrapp):
         if result.ok:
             soup = BeautifulSoup(result.text, "html.parser")
             # Récupération de la div contenant ces infos
-            row = soup.find("div", {"id": "subnavi"}).find_next_sibling("div", {"class": "row"})
-            box_info = row.find(text=re.compile(scrapp_func_global.transfermarkt_box_info_club_find))
-            if box_info is not None:
-                box_info = box_info.find_parent("div", {
-                    "class": "info-header"}).find_parent("div", {"class": "box"})
+            row = soup.find("div", {"id": "subnavi"})
+            if row is None:
+                logging.error(club_to_scrapp)
+            else:
+                row = row.find_next_sibling("div", {"class": "row"})
+                if row is not None:
+                    box_info = row.find(text=re.compile(scrapp_func_global.transfermarkt_box_info_club_find))
+                    if box_info is not None:
+                        box_info = box_info.find_parent("div", {
+                            "class": "info-header"}).find_parent("div", {"class": "box"})
 
-                nom_club = box_info.find("th", text=re.compile(scrapp_func_global.transfermarkt_nom_club_find))
-                if nom_club is not None:
-                    nom_club = nom_club.find_parent().find("td").text
-                    if nom_club is not None:
-                        club["nom"] = nom_club
-                pays_club = box_info.find("th", text=re.compile(scrapp_func_global.transfermarkt_adresse_club_find))
-                if pays_club is not None:
-                    pays_club = pays_club.find_parent().find_next_sibling().find_next_sibling().find("td").text
-                    if pays_club is not None:
-                        club["pays"] = triNation(pays_club)
+                        nom_club = box_info.find("th", text=re.compile(scrapp_func_global.transfermarkt_nom_club_find))
+                        if nom_club is not None:
+                            nom_club = nom_club.find_parent().find("td").text
+                            if nom_club is not None:
+                                club["nom"] = nom_club
+                        pays_club = box_info.find("th",
+                                                  text=re.compile(scrapp_func_global.transfermarkt_adresse_club_find))
+                        if pays_club is not None:
+                            pays_club = pays_club.find_parent().find_next_sibling().find_next_sibling().find("td").text
+                            if pays_club is not None:
+                                club["pays"] = triNation(pays_club)
 
-                site_club = box_info.find("th", text=re.compile(scrapp_func_global.transfermarkt_site_club_find))
-                if site_club is not None:
-                    site_club = site_club.find_parent().find("a")["href"]
-                    if site_club is not None:
-                        club["site"] = site_club
+                        site_club = box_info.find("th",
+                                                  text=re.compile(scrapp_func_global.transfermarkt_site_club_find))
+                        if site_club is not None:
+                            site_club = site_club.find_parent().find("a")["href"]
+                            if site_club is not None:
+                                club["site"] = site_club
 
-                creation_club = box_info.find("th", text=re.compile(scrapp_func_global.transfermarkt_annee_club_find))
-                if creation_club is not None:
-                    creation_club = creation_club.find_parent().find("td").text
-                    if creation_club is not None:
-                        creation_club = datetime.strptime(creation_club.strip(), '%d %b %Y')
+                        creation_club = box_info.find("th",
+                                                      text=re.compile(scrapp_func_global.transfermarkt_annee_club_find))
                         if creation_club is not None:
-                            club["creation"] = creation_club.date().isoformat()
+                            creation_club = creation_club.find_parent().find("td").text
+                            if creation_club is not None:
+                                creation_club = datetime.strptime(creation_club.strip(), '%d %b %Y')
+                                if creation_club is not None:
+                                    club["creation"] = creation_club.date().isoformat()
 
-                couleurs_club = []
-                couleurs = box_info.find("th", text=re.compile(scrapp_func_global.transfermarkt_couleurs_club_find))
-                if couleurs is not None:
-                    couleurs = couleurs.find_parent().find("td").find("p")
-                    for couleur in couleurs.findAll():
-                        match = (re.search("background-color:", couleur["style"]))
-                        couleur = couleur["style"][match.end():-1]
-                        couleurs_club.append(couleur)
-                    if couleurs_club is not None:
-                        club["couleurs"] = couleurs_club
+                        couleurs_club = []
+                        couleurs = box_info.find("th",
+                                                 text=re.compile(scrapp_func_global.transfermarkt_couleurs_club_find))
+                        if couleurs is not None:
+                            couleurs = couleurs.find_parent().find("td").find("p")
+                            for couleur in couleurs.findAll():
+                                match = (re.search("background-color:", couleur["style"]))
+                                couleur = couleur["style"][match.end():-1]
+                                couleurs_club.append(couleur)
+                            if couleurs_club is not None:
+                                club["couleurs"] = couleurs_club
 
-                logos_club = []
-                logos = soup.find("h2", text=re.compile(scrapp_func_global.transfermarkt_logo_club_find))
-                if logos is not None:
-                    logos = logos.find_parent("div", {"class": "box"}).findAll("img")
-                    for logo in logos:
-                        if validators.url(logo["src"]):
-                            logos_club.append(logo["src"])
-                    if logos_club is not None:
-                        club["logos"] = logos_club
+                        logos_club = []
+                        logos = soup.find("h2", text=re.compile(scrapp_func_global.transfermarkt_logo_club_find))
+                        if logos is not None:
+                            logos = logos.find_parent("div", {"class": "box"}).findAll("img")
+                            for logo in logos:
+                                if validators.url(logo["src"]):
+                                    logos_club.append(logo["src"])
+                            if logos_club is not None:
+                                club["logos"] = logos_club
 
-                club["stade"] = getInfoStadeClub(club_to_scrapp)
-                scrapp_func_global.all_clubs.append(club)
-                scrapp_func_global.all_clubs_id.append(club["id_transfermarkt"])
+                        club["stade"] = getInfoStadeClub(club_to_scrapp)
+                        scrapp_func_global.all_clubs.append(club)
+                        scrapp_func_global.all_clubs_id.append(club["id_transfermarkt"])
 
 
 def getInfoStadeClub(club):
@@ -161,10 +172,11 @@ def getInfoStadeClub(club):
 
         box_adresse = row.find("h2", text=re.compile(scrapp_func_global.transfermarkt_box_adresse_stade_find))
         if box_adresse is not None:
-            box_adresse= box_adresse.find_parent("div", {
+            box_adresse = box_adresse.find_parent("div", {
                 "class": "box"})
             tr_adresse = box_adresse.find("th",
-                                          text=re.compile(scrapp_func_global.transfermarkt_adresse_stade_find)).find_parent(
+                                          text=re.compile(
+                                              scrapp_func_global.transfermarkt_adresse_stade_find)).find_parent(
                 "tr")
             adresse = tr_adresse.find("td").text.strip()
             tr_adresse = tr_adresse.find_next_sibling("tr")
@@ -201,6 +213,7 @@ def getJoueursClub(club_to_scrapp):
             getInfoJoueur(joueur)
 
     return joueurs
+
 
 def getInfoJoueur(joueur_to_scrapp):
     id_transfermarkt = joueur_to_scrapp["id"]
@@ -250,7 +263,7 @@ def getInfoJoueur(joueur_to_scrapp):
             else:
                 joueur["nom_complet"] = joueur["prenom"] + " " + joueur["nom"]
 
-#             print(" - " + joueur["nom_complet"] + " : En cours")
+            logging.debug(" - " + joueur["nom_complet"] + " : En cours")
             naissance = info_table.find(text=re.compile(scrapp_func_global.transfermarkt_naissance_joueur_find))
             if naissance is not None:
                 naissance = naissance.find_parent().find_next_sibling().find("a").text
@@ -263,7 +276,7 @@ def getInfoJoueur(joueur_to_scrapp):
             if nationalite is not None:
                 nationalite = nationalite.find_parent().find_next_sibling()
                 if nationalite is not None:
-                    for img in nationalite.findAll("img") :
+                    for img in nationalite.findAll("img"):
                         img.decompose()
                     for pays in nationalite.contents:
                         if pays is not None and isinstance(pays, str):
@@ -326,9 +339,12 @@ def getInfoJoueur(joueur_to_scrapp):
             if fin_contrat is not None:
                 fin_contrat = fin_contrat.find_parent().find_next_sibling().text
                 if fin_contrat is not None:
-                    fin_contrat = datetime.strptime(fin_contrat.strip(), '%d %b %Y')
-                    if fin_contrat is not None:
-                        date_fin_contrat = fin_contrat.date().isoformat()
+                    try :
+                        fin_contrat = datetime.strptime(fin_contrat.strip(), '%d %b %Y')
+                        if fin_contrat is not None:
+                            date_fin_contrat = fin_contrat.date().isoformat()
+                    except Exception:
+                        date_fin_contrat = None
 
             contrats = getContratsJoueur(joueur_to_scrapp, date_fin_contrat)
             if contrats is not None:
@@ -358,13 +374,14 @@ def getInfoJoueur(joueur_to_scrapp):
                         date_fin_contrat = fin_contrat.date().isoformat()
             joueur = next((x for x in scrapp_func_global.all_joueurs if x["id_transfermarkt"] == id_transfermarkt),
                           None)
-#             print(" - " + joueur["nom_complet"] + " : En cours")
+            logging.debug(" - " + joueur["nom_complet"] + " : En cours")
             if "contrats" not in joueur or joueur["contrats"] is None or len(joueur["contrats"]) == 0:
                 contrats = getContratsJoueur(joueur_to_scrapp, date_fin_contrat)
                 joueur["contrats"] = contrats
             else:
                 majContratsJoueur(joueur, joueur_to_scrapp, date_fin_contrat)
-#     print(" - " + joueur["nom_complet"] + " : Save")
+    logging.debug(" - " + joueur["nom_complet"] + " : Save")
+
 
 def getContratsJoueur(joueur_to_scrapp, date_fin_contrat):
     # "Création" du lien du joueur où sont les transfert de ce dernier
@@ -426,7 +443,7 @@ def getContratsJoueur(joueur_to_scrapp, date_fin_contrat):
                     club_entrant_id = club_entrant["id"]
                     if pret is not None:
                         contrats.append(pret)
-#                         print (" - - " + pret["club"] + " : Prêt")
+                        logging.debug(" - - " + pret["club"] + " : Prêt")
                     else:
                         if club_entrant_nom == "Fin de carrière":
                             montant_transfert = "retraite"
@@ -453,7 +470,7 @@ def getContratsJoueur(joueur_to_scrapp, date_fin_contrat):
                 contrat["club"] = club_partant["id"]
                 contrat["fin"] = getDateTransfertLigne(ligne_transfert)
             contrats.append(contrat)
-#             print (" - - " + contrat["club"] + " : Transfert")
+            logging.debug(" - - " + contrat["club"] + " : Transfert")
             if club_entrant_nom == "Pause carrière" or club_entrant_nom == "Fin de carrière":
                 index_ligne_transfert += 1
         contrats.sort(key=lambda x: x["debut"], reverse=True)
@@ -514,7 +531,7 @@ def majContratsJoueur(joueur, joueur_to_scrapp, date_fin_contrat):
                         club_entrant_id = club_entrant["id"]
                         if pret is not None:
                             contrats.append(pret)
-#                             print (" - - " + pret["club"] + " : Prêt")
+                            logging.debug(" - - " + pret["club"] + " : Prêt")
                         else:
                             if club_entrant_nom == "Fin de carrière":
                                 montant_transfert = "retraite"
@@ -539,7 +556,7 @@ def majContratsJoueur(joueur, joueur_to_scrapp, date_fin_contrat):
                     # Si le dernier contrat enregistré est le dernier des transferts on change la fin du contrat
                     if index_ligne_transfert == len(lignes) - 1:
                         dernier_contrat["fin"] = date_fin_contrat
-                        index_ligne_transfert+=1
+                        index_ligne_transfert += 1
                     # Si le joueur a eu d'autres transferts d'ici la dernière sauvegarde
                     else:
                         montant_transfert = getMontantTransfertLigne(ligne_transfert)
@@ -557,7 +574,7 @@ def majContratsJoueur(joueur, joueur_to_scrapp, date_fin_contrat):
                             club_entrant_id = club_entrant["id"]
                             if pret is not None:
                                 contrats.append(pret)
-#                                 print (" - - " + pret["club"] + " : Prêt")
+                                logging.debug(" - - " + pret["club"] + " : Prêt")
                             else:
                                 if club_entrant_nom == "Fin de carrière":
                                     montant_transfert = "retraite"
@@ -616,7 +633,7 @@ def majContratsJoueur(joueur, joueur_to_scrapp, date_fin_contrat):
                             club_entrant_id = club_entrant["id"]
                             if pret is not None:
                                 contrats.append(pret)
-#                                 print (" - - " + pret["club"] + " : Prêt")
+                                logging.debug(" - - " + pret["club"] + " : Prêt")
                             else:
                                 if club_entrant_nom == "Fin de carrière":
                                     montant_transfert = "retraite"
@@ -644,7 +661,7 @@ def majContratsJoueur(joueur, joueur_to_scrapp, date_fin_contrat):
                         contrat["club"] = club_partant["id"]
                         contrat["fin"] = getDateTransfertLigne(ligne_transfert)
                     contrats.append(contrat)
-#                     print (" - - " + contrat["club"] + " : Transfert")
+                    logging.debug(" - - " + contrat["club"] + " : Transfert")
                     if club_entrant_nom == "Pause carrière" or club_entrant_nom == "Fin de carrière":
                         index_ligne_transfert += 1
                 else:
@@ -738,7 +755,7 @@ def correctFormatDate(date):
     return bool(re.match('^[0-9]{1,2} [A-zÀ-ÿ.]{4,5} [0-9]{4}$', date))
 
 
-def montantToInt(montant) :
+def montantToInt(montant):
     montant = montant.replace("€", "").strip()
     abrev = re.sub("[^A-z.]", "", montant)
     try:
@@ -754,7 +771,8 @@ def montantToInt(montant) :
         pass
     return 0
 
-def triNation(pays) :
+
+def triNation(pays):
     if pays is not None:
         if pays == 'Angleterre':
             return 'Royaume-Uni'
