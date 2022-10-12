@@ -15,10 +15,10 @@ logging.basicConfig(filename=log_file_path, level=logging.INFO, encoding="UTF-8"
 
 locale.setlocale(locale.LC_ALL, 'fr_FR')
 
-json_clubs = Path("scrapp/clubs.json").absolute()
-json_id_clubs = Path("scrapp/id_clubs.json").absolute()
-json_joueurs = Path("scrapp/joueurs.json").absolute()
-json_id_joueurs = Path("scrapp/id_joueurs.json").absolute()
+json_clubs = Path("scrapp/donnees/clubs.json").absolute()
+json_id_clubs = Path("scrapp/donnees/id_clubs.json").absolute()
+json_joueurs = Path("scrapp/donnees/joueurs.json").absolute()
+json_id_joueurs = Path("scrapp/donnees/id_joueurs.json").absolute()
 
 
 def save():
@@ -47,8 +47,8 @@ if json_id_joueurs.exists():
 
 clubs = scrapp_func_clubs.getClubsLigue1()
 for club in clubs:
-    logging.debug(club["name"] + " : En cours")
+    logging.info(f"[INFO] {club['nom']} : En cours")
     scrapp_func_clubs.getInfoClub(club)
     scrapp_func_clubs.getJoueursClub(club)
     save()
-    logging.debug(club["name"] + " : Saved")
+    logging.info(f"[INFO] {club['nom']} : Terminé")

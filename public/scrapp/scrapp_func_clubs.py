@@ -1,3 +1,4 @@
+import json
 import logging
 
 import requests
@@ -10,6 +11,7 @@ import copy
 import sys
 from inspect import currentframe, getframeinfo
 
+# TODO vérifier date de fin contrat club qui prête actuellement un joueur
 
 def getIdClubsPresent():
     for club in scrapp_func_global.all_clubs:
@@ -35,7 +37,7 @@ def getClubsLigue1():
                     name = href[href.find("/") + 1: href.find("/" + scrapp_func_global.transfermarkt_accueil_club)]
                     id = link[match.end():]
                     id = id[:id.find("/")]
-                    clubs.append({"id": id, "link": link, "name": name})
+                    clubs.append({"id": id, "link": link, "nom": name})
                 except Exception as e:
                     exc_type, exc_obj, exc_tb = sys.exc_info()
                     logging.error(
@@ -73,7 +75,7 @@ def getInfoClub(club_to_scrapp):
                 # Récupération de la div contenant toutes les informations que l'on souhaite
                 row = subnavi.find_next_sibling("div", {"class": "row"})
 
-                try :
+                try:
                     # Récupération de la div contenant les informations du clubs
                     box_info = row.find(text=re.compile(scrapp_func_global.transfermarkt_box_info_club_find))
                     box_info = box_info.find_parent("div", {
@@ -136,7 +138,7 @@ def getInfoClub(club_to_scrapp):
                                                  text=re.compile(scrapp_func_global.transfermarkt_couleurs_club_find))
                         couleurs = couleurs.find_parent().find("td").find("p")
                         for couleur in couleurs.findAll():
-                            try :
+                            try:
                                 match = (re.search("background-color:", couleur["style"]))
                                 couleur = couleur["style"][match.end():-1]
                                 if couleur != '':
@@ -157,7 +159,7 @@ def getInfoClub(club_to_scrapp):
                     try:
                         lien_club = club_to_scrapp["link"].replace(scrapp_func_global.transfermarkt_url_replace,
                                                                    scrapp_func_global.transfermarkt_accueil_club)
-                        lien_club = lien_club[lien_club.index(club_to_scrapp["nom"]) - 1: lien_club.index(
+                        lien_club = lien_club[lien_club.index(scrapp_func_global.transfermarkt_base_url) + len(scrapp_func_global.transfermarkt_base_url): lien_club.index(
                             str(club_to_scrapp["id"])) + len(str(club_to_scrapp["id"]))]
                         img = box_info.find("a", {"href": lien_club}).find("img")["src"]
                         club["logo_principal"] = img
@@ -196,7 +198,6 @@ def getInfoClub(club_to_scrapp):
                 club["logos"] = logos_club
                 club["stade"] = getInfoStadeClub(club_to_scrapp)
                 scrapp_func_global.all_clubs.append(club)
-                print(club)
                 scrapp_func_global.all_clubs_id.append(club["id_transfermarkt"])
 
             except Exception as e:
@@ -360,7 +361,7 @@ def getInfoJoueur(joueur_to_scrapp):
     id_transfermarkt = joueur_to_scrapp["id"]
     # "Création" du lien du club où sont les infos de ce dernier
     link = joueur_to_scrapp["link"].replace(scrapp_func_global.transfermarkt_url_replace,
-                                                scrapp_func_global.transfermarkt_info_joueur)
+                                            scrapp_func_global.transfermarkt_info_joueur)
     result = requests.get(link, headers=scrapp_func_global.headers)
     if result.ok:
         soup = BeautifulSoup(result.text, "html.parser")
@@ -369,6 +370,7 @@ def getInfoJoueur(joueur_to_scrapp):
         if id_transfermarkt not in scrapp_func_global.all_joueurs_id:
             joueur = {
                 "id_transfermarkt": joueur_to_scrapp["id"],
+                "lien_transfermarkt": joueur_to_scrapp["link"],
                 "nom": '',
                 "prenom": '',
                 "nom_complet": '',
@@ -379,145 +381,335 @@ def getInfoJoueur(joueur_to_scrapp):
                 "pied": '',
                 "taille": 0,
                 "equipementier": '',
-                "contrats": []
+                "contrats": [],
+                "date_maj": None
             }
-            # Récupération de la div contenant ces infos
-            header = soup.find("main").find("header", {"class": "data-header"})
+            # Récupération des informations "personnelles" du joueur
+            try:
+                # Récupération de la div contenant ces infos
+                header = soup.find("main").find("header", {"class": "data-header"})
 
-            # Récupération du "titre" du nom/prénom du joueur
-            h1_name_joueur = header.find("div", {"class": "data-header__headline-container"}).find("h1")
-            # Suppression du numéro du joueur dans ce titre
-            span_numero_joueur = h1_name_joueur.find("span", {"class": "data-header__shirt-number"})
-            if span_numero_joueur is not None:
-                span_numero_joueur.decompose()
-            # Récupération du nom du joueur présent dans la balise <strong>
-            joueur["nom"] = h1_name_joueur.find("strong").text
-            # Suppression du nom dans le titre afin de n'avoir plus que le prénom
-            h1_name_joueur.find("strong").decompose()
-            # Récupération du prénom qui est présent dans le reste du titre
-            joueur["prenom"] = h1_name_joueur.text.strip()
+                # Récupération du nom/prénom du joueur
+                try:
+                    # Récupération du "titre" du nom/prénom du joueur
+                    h1_name_joueur = header.find("div", {"class": "data-header__headline-container"}).find("h1")
+                    # Suppression du numéro du joueur dans ce titre
+                    span_numero_joueur = h1_name_joueur.find("span", {"class": "data-header__shirt-number"})
+                    if span_numero_joueur is not None:
+                        span_numero_joueur.decompose()
+                    # Récupération du nom du joueur présent dans la balise <strong>
+                    joueur["nom"] = h1_name_joueur.find("strong").text
+                    # Suppression du nom dans le titre afin de n'avoir plus que le prénom
+                    h1_name_joueur.find("strong").decompose()
+                    # Récupération du prénom qui est présent dans le reste du titre
+                    joueur["prenom"] = h1_name_joueur.text.strip()
+                except Exception as e:
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    logging.error(
+                        f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération du nom/prénom "
+                        f"du joueur {joueur_to_scrapp['id']} via le header : {e} !")
 
-            row = soup.find("div", {"id": "subnavi"}).find_next_sibling("div", {"class": "row"})
-            info_table = row.find("div", {"class": "info-table"})
+                # Récupération de la div contenant les données du joueur (le body de la page du joueur en somme)
+                row = soup.find("div", {"id": "subnavi"}).find_next_sibling("div", {"class": "row"})
+                # Récupération du tableau contenant les informations personnelles du joueur
+                info_table = row.find("div", {"class": "info-table"})
 
-            nom_complet = info_table.find(text=re.compile(scrapp_func_global.transfermarkt_nom_joueur_find))
-            if nom_complet is not None:
-                joueur["nom_complet"] = nom_complet.find_parent().find_next_sibling().text
-            else:
-                joueur["nom_complet"] = joueur["prenom"] + " " + joueur["nom"]
+                # Récupération du nom complet du joueur
+                try:
+                    nom_complet = info_table.find(text=re.compile(scrapp_func_global.transfermarkt_nom_joueur_find))
+                    if nom_complet is not None:
+                        joueur["nom_complet"] = nom_complet.find_parent().find_next_sibling().text
+                    else:
+                        joueur["nom_complet"] = joueur["prenom"] + " " + joueur["nom"]
+                except Exception as e:
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    logging.error(
+                        f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération du nom complet "
+                        f"du joueur {joueur_to_scrapp['id']} : {e} !")
 
-            logging.debug(" - " + joueur["nom_complet"] + " : En cours")
-            naissance = info_table.find(text=re.compile(scrapp_func_global.transfermarkt_naissance_joueur_find))
-            if naissance is not None:
-                naissance = naissance.find_parent().find_next_sibling().find("a").text
-                if naissance is not None:
+                # Indiquer dans le log le joueur que l'on est en train de traiter
+                logging.info(f"[INFO] - {joueur['nom_complet']} : En cours")
+
+                # Récupération de la date de naissance du joueur
+                try:
+                    naissance = info_table.find(text=re.compile(scrapp_func_global.transfermarkt_naissance_joueur_find))
+                    naissance = naissance.find_parent().find_next_sibling().find("a").text
                     naissance = datetime.strptime(naissance.strip(), '%d %b %Y')
-                    if naissance is not None:
-                        joueur["date_naissance"] = naissance.date().isoformat()
+                    joueur["date_naissance"] = naissance.date().isoformat()
+                except Exception as e:
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    logging.error(
+                        f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération de la date "
+                        f"de naissance du joueur {joueur['nom_complet']} ({joueur_to_scrapp['id']}) : {e} !")
 
-            nationalite = info_table.find(text=re.compile(scrapp_func_global.transfermarkt_nationalite_joueur_find))
-            if nationalite is not None:
-                nationalite = nationalite.find_parent().find_next_sibling()
-                if nationalite is not None:
+                # Récupération des nationalités du joueur
+                try:
+                    nationalite = info_table.find(
+                        text=re.compile(scrapp_func_global.transfermarkt_nationalite_joueur_find))
+                    nationalite = nationalite.find_parent().find_next_sibling()
                     for img in nationalite.findAll("img"):
-                        img.decompose()
-                    for pays in nationalite.contents:
-                        if pays is not None and isinstance(pays, str):
-                            if pays.strip() != '':
-                                pays = triNation(pays.strip())
-                                joueur["pays"].append(pays)
+                        try:
+                            pays = triNation(img["alt"])
+                            joueur["pays"].append(pays)
+                        except Exception as e:
+                            exc_type, exc_obj, exc_tb = sys.exc_info()
+                            logging.error(
+                                f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération d'une "
+                                f"nationalité du joueur {joueur['nom_complet']} ({joueur_to_scrapp['id']}) : {e} !")
+                except Exception as e:
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    logging.error(
+                        f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération des "
+                        f"nationalités du joueur {joueur['nom_complet']} ({joueur_to_scrapp['id']}) : {e} !")
 
-            pied = info_table.find(text=re.compile(scrapp_func_global.transfermarkt_pied_joueur_find))
-            if pied is not None:
-                joueur["pied"] = pied.find_parent().find_next_sibling().text
+                # Récupération du pied fort du joueur
+                try:
+                    pied = info_table.find(text=re.compile(scrapp_func_global.transfermarkt_pied_joueur_find))
+                    joueur["pied"] = pied.find_parent().find_next_sibling().text
+                except Exception as e:
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    logging.error(
+                        f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération du pied fort "
+                        f"du joueur {joueur['nom_complet']} ({joueur_to_scrapp['id']}) : {e} !")
 
-            taille = info_table.find(text=re.compile(scrapp_func_global.transfermarkt_taille_joueur_find))
-            if taille is not None:
-                joueur["taille"] = re.sub('\D', '', taille.find_parent().find_next_sibling().text)
+                # Récupération de la taille du joueur
+                try:
+                    taille = info_table.find(text=re.compile(scrapp_func_global.transfermarkt_taille_joueur_find))
+                    joueur["taille"] = re.sub('\D', '', taille.find_parent().find_next_sibling().text)
+                except Exception as e:
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    logging.error(
+                        f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération de la taille "
+                        f"du joueur {joueur['nom_complet']} ({joueur_to_scrapp['id']}) : {e} !")
 
-            equipementier = info_table.find(text=re.compile(scrapp_func_global.transfermarkt_equipementier_joueur_find))
-            if equipementier is not None:
-                joueur["equipementier"] = equipementier.find_parent().find_next_sibling().text
+                # Récupération de l'équipementier actuel du joueur
+                try:
+                    equipementier = info_table.find(
+                        text=re.compile(scrapp_func_global.transfermarkt_equipementier_joueur_find))
+                    joueur["equipementier"] = equipementier.find_parent().find_next_sibling().text
+                except Exception as e:
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    logging.error(
+                        f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération de "
+                        f"l'équipementier actuel du joueur {joueur['nom_complet']} ({joueur_to_scrapp['id']}) : {e} !")
 
-            box_positions = soup.find("div", {"class": "detail-position__matchfield"})
-            if box_positions is not None:
-                span_positions_principales = box_positions.findAll("span", {"class": "position__primary"})
-                positions_principales = []
-                if span_positions_principales is not None:
+                # Récupérations des positions du joueur
+                try:
+                    # Récupération de la div contenant les différentes positions du joueur (point sur le terrain)
+                    box_positions = soup.find("div", {"class": "detail-position__matchfield"})
+
+                    # Récupération des spans correspondants aux positions principales du joueur
+                    span_positions_principales = box_positions.findAll("span", {"class": "position__primary"})
+
+                    positions_principales = []
                     for span_position_principale in span_positions_principales:
-                        position = -1
-                        i = len(span_position_principale["class"]) - 1
-                        while position == -1 and i > 0:
-                            css_class = span_position_principale["class"][i]
-                            if css_class.startswith(scrapp_func_global.class_css_position_principale_start):
-                                position = css_class.replace(scrapp_func_global.class_css_position_principale_start, '')
-                                if not position.isdigit():
-                                    position = -1
-                                else:
-                                    positions_principales.append(int(position))
-                            i -= 1
-                joueur["positions_principales"] = positions_principales
+                        try:
+                            position = [class_type for class_type in span_position_principale["class"]
+                                        if scrapp_func_global.class_css_position_principale_start in class_type
+                                        ][0].replace(scrapp_func_global.class_css_position_principale_start, "")
+                            if position.isdigit():
+                                positions_principales.append(int(position))
+                        except Exception as e:
+                            exc_type, exc_obj, exc_tb = sys.exc_info()
+                            logging.error(
+                                f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération d'une "
+                                f"position principale du joueur {joueur['nom_complet']} ({joueur_to_scrapp['id']}) "
+                                f": {e} !")
 
-                span_positions_secondaires = box_positions.findAll("span", {"class": "position__secondary"})
-                positions_secondaires = []
-                if span_positions_secondaires is not None:
+                    joueur["positions_principales"] = positions_principales
+
+                    # Récupération des spans correspondants aux positions secondaires du joueur
+                    span_positions_secondaires = box_positions.findAll("span", {"class": "position__secondary"})
+
+                    positions_secondaires = []
+
                     for span_position_secondaire in span_positions_secondaires:
-                        position = -1
-                        i = len(span_position_secondaire["class"]) - 1
-                        while position == -1 and i > 0:
-                            css_class = span_position_secondaire["class"][i]
-                            if css_class.startswith(scrapp_func_global.class_css_position_secondaire_start):
-                                position = css_class.replace(scrapp_func_global.class_css_position_secondaire_start, '')
-                                if not position.isdigit():
-                                    position = -1
-                                else:
-                                    positions_secondaires.append(int(position))
-                            i -= 1
-                joueur["positions_secondaires"] = positions_secondaires
+                        try:
+                            position = [class_type for class_type in span_position_secondaire["class"]
+                                        if scrapp_func_global.class_css_position_secondaire_start in class_type
+                                        ][0].replace(scrapp_func_global.class_css_position_secondaire_start, "")
+                            if position.isdigit():
+                                positions_secondaires.append(int(position))
+                        except Exception as e:
+                            exc_type, exc_obj, exc_tb = sys.exc_info()
+                            logging.error(
+                                f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération d'une "
+                                f"position secondaire du joueur {joueur['nom_complet']} ({joueur_to_scrapp['id']}) "
+                                f": {e} !")
 
-            fin_contrat = info_table.find(text=re.compile(scrapp_func_global.transfermarkt_fin_contrat_pret_find))
-            date_fin_contrat = None
-            if fin_contrat is None:
-                fin_contrat = info_table.find(text=re.compile(scrapp_func_global.transfermarkt_fin_contrat_find))
-            if fin_contrat is not None:
-                fin_contrat = fin_contrat.find_parent().find_next_sibling().text
-                if fin_contrat is not None:
+                    joueur["positions_secondaires"] = positions_secondaires
+                except Exception as e:
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    logging.error(
+                        f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération des positions "
+                        f"du joueur {joueur['nom_complet']} ({joueur_to_scrapp['id']}) : {e} !")
+
+                # Récupération date de fin du dernier contrat du joueur (çàd celui actuel normalement)
+                date_fin_contrat = None
+                try:
+                    # Récupère la date de fin du contrat avec le club qui prête le joueur (si prêté)
+                    fin_contrat = info_table.find(text=re.compile(scrapp_func_global.transfermarkt_fin_contrat_pret_find))
+                    # Si le joueur n'est pas prêté, récupère la date de fin du contrat
+                    if fin_contrat is None:
+                        fin_contrat = info_table.find(text=re.compile(scrapp_func_global.transfermarkt_fin_contrat_find))
+
+                    fin_contrat = fin_contrat.find_parent().find_next_sibling().text
                     try:
                         fin_contrat = datetime.strptime(fin_contrat.strip(), '%d %b %Y')
-                        if fin_contrat is not None:
-                            date_fin_contrat = fin_contrat.date().isoformat()
-                    except Exception:
-                        date_fin_contrat = None
+                        date_fin_contrat = fin_contrat.date().isoformat()
+                    except Exception as e:
+                        exc_type, exc_obj, exc_tb = sys.exc_info()
+                        logging.error(
+                            f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la conversion de la date de "
+                            f"fin du contrat actuel ({fin_contrat}) du joueur {joueur['nom_complet']} ({joueur_to_scrapp['id']}) : {e} !")
+                except Exception as e:
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    logging.error(
+                        f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération de la date de "
+                        f"fin du contrat actuel  du joueur {joueur['nom_complet']} ({joueur_to_scrapp['id']}) : {e} !")
 
-            contrats = getContratsJoueur(joueur_to_scrapp, date_fin_contrat)
-            if contrats is not None:
+                contrats = getContratsJoueur(joueur_to_scrapp, date_fin_contrat)
                 joueur["contrats"] = contrats
+
+            except Exception as e:
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                logging.error(
+                    f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération des informations "
+                    f"personnelles du joueur {joueur_to_scrapp['id']} : {e} !")
 
             scrapp_func_global.all_joueurs.append(joueur)
             scrapp_func_global.all_joueurs_id.append(joueur["id_transfermarkt"])
         else:
-            row = soup.find("div", {"id": "subnavi"}).find_next_sibling("div", {"class": "row"})
-            info_table = row.find("div", {"class": "info-table"})
+            try:
+                # Récupération du joueur correspondant à l'id_transfermarkt
+                joueur = next((x for x in scrapp_func_global.all_joueurs if x["id_transfermarkt"] == id_transfermarkt),
+                              None)
 
-            fin_contrat = info_table.find(text=re.compile(scrapp_func_global.transfermarkt_fin_contrat_pret_find))
-            date_fin_contrat = None
-            if fin_contrat is None:
-                fin_contrat = info_table.find(text=re.compile(scrapp_func_global.transfermarkt_fin_contrat_find))
-            if fin_contrat is not None:
-                fin_contrat = fin_contrat.find_parent().find_next_sibling().text
-                if fin_contrat is not None and bool(re.match('^[0-9]{1,2} [A-zÀ-ÿ.]{4,5} [0-9]{4}$', fin_contrat)):
-                    fin_contrat = datetime.strptime(fin_contrat.strip(), '%d %b %Y')
-                    if fin_contrat is not None:
-                        date_fin_contrat = fin_contrat.date().isoformat()
-            joueur = next((x for x in scrapp_func_global.all_joueurs if x["id_transfermarkt"] == id_transfermarkt),
-                          None)
-            logging.debug(" - " + joueur["nom_complet"] + " : En cours")
-            if "contrats" not in joueur or joueur["contrats"] is None or len(joueur["contrats"]) == 0:
-                contrats = getContratsJoueur(joueur_to_scrapp, date_fin_contrat)
-                joueur["contrats"] = contrats
-            else:
-                majContratsJoueur(joueur, joueur_to_scrapp, date_fin_contrat)
-    logging.debug(" - " + joueur["nom_complet"] + " : Save")
+                # Indiquer dans le log le joueur que l'on est en train de traiter
+                logging.info(f"[INFO] - {joueur['nom_complet']} : En cours")
+
+                date_fin_contrat = None
+                try :
+                    # Récupération de la div contenant les données du joueur (le body de la page du joueur en somme)
+                    row = soup.find("div", {"id": "subnavi"}).find_next_sibling("div", {"class": "row"})
+                    # Récupération du tableau contenant les informations personnelles du joueur
+                    info_table = row.find("div", {"class": "info-table"})
+
+                    # Récupération de la taille du joueur
+                    try:
+                        taille = info_table.find(text=re.compile(scrapp_func_global.transfermarkt_taille_joueur_find))
+                        joueur["taille"] = re.sub('\D', '', taille.find_parent().find_next_sibling().text)
+                    except Exception as e:
+                        exc_type, exc_obj, exc_tb = sys.exc_info()
+                        logging.error(
+                            f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération de la taille "
+                            f"du joueur {joueur['nom_complet']} ({joueur_to_scrapp['id']}) : {e} !")
+
+                    # Récupération de l'équipementier actuel du joueur
+                    try:
+                        equipementier = info_table.find(
+                            text=re.compile(scrapp_func_global.transfermarkt_equipementier_joueur_find))
+                        joueur["equipementier"] = equipementier.find_parent().find_next_sibling().text
+                    except Exception as e:
+                        exc_type, exc_obj, exc_tb = sys.exc_info()
+                        logging.error(
+                            f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération de "
+                            f"l'équipementier actuel du joueur {joueur['nom_complet']} ({joueur_to_scrapp['id']}) : {e} !")
+
+                    # Récupérations des positions du joueur
+                    try:
+                        # Récupération de la div contenant les différentes positions du joueur (point sur le terrain)
+                        box_positions = soup.find("div", {"class": "detail-position__matchfield"})
+
+                        # Récupération des spans correspondants aux positions principales du joueur
+                        span_positions_principales = box_positions.findAll("span", {"class": "position__primary"})
+
+                        positions_principales = []
+                        for span_position_principale in span_positions_principales:
+                            try:
+                                position = [class_type for class_type in span_position_principale["class"]
+                                            if scrapp_func_global.class_css_position_principale_start in class_type
+                                            ][0].replace(scrapp_func_global.class_css_position_principale_start, "")
+                                if position.isdigit():
+                                    positions_principales.append(int(position))
+                            except Exception as e:
+                                exc_type, exc_obj, exc_tb = sys.exc_info()
+                                logging.error(
+                                    f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération d'une "
+                                    f"position principale du joueur {joueur['nom_complet']} ({joueur_to_scrapp['id']}) "
+                                    f": {e} !")
+
+                        joueur["positions_principales"] = positions_principales
+
+                        # Récupération des spans correspondants aux positions secondaires du joueur
+                        span_positions_secondaires = box_positions.findAll("span", {"class": "position__secondary"})
+
+                        positions_secondaires = []
+
+                        for span_position_secondaire in span_positions_secondaires:
+                            try:
+                                position = [class_type for class_type in span_position_secondaire["class"]
+                                            if scrapp_func_global.class_css_position_secondaire_start in class_type
+                                            ][0].replace(scrapp_func_global.class_css_position_secondaire_start, "")
+                                if position.isdigit():
+                                    positions_secondaires.append(int(position))
+                            except Exception as e:
+                                exc_type, exc_obj, exc_tb = sys.exc_info()
+                                logging.error(
+                                    f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération d'une "
+                                    f"position secondaire du joueur {joueur['nom_complet']} ({joueur_to_scrapp['id']}) "
+                                    f": {e} !")
+
+                        joueur["positions_secondaires"] = positions_secondaires
+                    except Exception as e:
+                        exc_type, exc_obj, exc_tb = sys.exc_info()
+                        logging.error(
+                            f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération des positions "
+                            f"du joueur {joueur['nom_complet']} ({joueur_to_scrapp['id']}) : {e} !")
+
+                    # Récupération date de fin du dernier contrat du joueur (çàd celui actuel normalement)
+                    try:
+                        # Récupère la date de fin du contrat avec le club qui prête le joueur (si prêté)
+                        fin_contrat = info_table.find(text=re.compile(scrapp_func_global.transfermarkt_fin_contrat_pret_find))
+                        # Si le joueur n'est pas prêté, récupère la date de fin du contrat
+                        if fin_contrat is None:
+                            fin_contrat = info_table.find(text=re.compile(scrapp_func_global.transfermarkt_fin_contrat_find))
+
+                        fin_contrat = fin_contrat.find_parent().find_next_sibling().text
+                        try:
+                            fin_contrat = datetime.strptime(fin_contrat.strip(), '%d %b %Y')
+                            date_fin_contrat = fin_contrat.date().isoformat()
+                        except Exception as e:
+                            exc_type, exc_obj, exc_tb = sys.exc_info()
+                            logging.error(
+                                f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la conversion de la date de "
+                                f"fin du contrat actuel ({fin_contrat}) du joueur {joueur['nom_complet']} ({joueur_to_scrapp['id']}) : {e} !")
+                    except Exception as e:
+                        exc_type, exc_obj, exc_tb = sys.exc_info()
+                        logging.error(
+                            f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération de la date de "
+                            f"fin du contrat actuel  du joueur ({joueur_to_scrapp['id']}) : {e} !")
+                except Exception as e:
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    logging.error(
+                        f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la màj des informations "
+                        f"personnelles  du joueur ({joueur_to_scrapp['id']}) : {e} !")
+
+                # Si le joueur n'a pas de contrat on les récupère sinon on les mets à jour
+                if "contrats" not in joueur or joueur["contrats"] is None or len(joueur["contrats"]) == 0:
+                    contrats = getContratsJoueur(joueur_to_scrapp, date_fin_contrat)
+                    joueur["contrats"] = contrats
+                else:
+                    majContratsJoueur(joueur, joueur_to_scrapp, date_fin_contrat)
+
+            except Exception as e:
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                logging.error(
+                    f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la màj des informations "
+                    f"personnelles du joueur {joueur_to_scrapp['id']} : {e} !")
+                return
+        joueur["date_maj"] = datetime.now().isoformat()
+        logging.info(f"[INFO] - {joueur['nom_complet']} : Terminé")
 
 
 def getContratsJoueur(joueur_to_scrapp, date_fin_contrat):
@@ -527,91 +719,116 @@ def getContratsJoueur(joueur_to_scrapp, date_fin_contrat):
     result = requests.get(link, headers=scrapp_func_global.headers)
     if result.ok:
         soup = BeautifulSoup(result.text, "html.parser")
-        row = soup.find("div", {"id": "subnavi"}).find_next_sibling("div", {"class": "row"})
-        titre_tableau_transferts = row.find("h2",
-                                            text=re.compile(scrapp_func_global.transfermarkt_historique_transfert_find))
-        tableau_transferts = titre_tableau_transferts.find_parent()
+        try:
+            # Récupération de la div contenant les données du joueur (le body de la page du joueur en somme)
+            row = soup.find("div", {"id": "subnavi"}).find_next_sibling("div", {"class": "row"})
+            # Récupération du tableau contenant les différents transferts du joueur
+            titre_tableau_transferts = row.find("h2",
+                                                text=re.compile(scrapp_func_global.transfermarkt_historique_transfert_find))
+            tableau_transferts = titre_tableau_transferts.find_parent()
 
-        lignes = tableau_transferts.findAll("div", {"class": scrapp_func_global.transfermarkt_class_transfert_ligne})
-        lignes = [ligne for ligne in lignes if len(ligne["class"]) == 1]
-        lignes = lignes[::-1]
+            # Récupération des lignes du tableau correspondant à un 'transfert' (une seule classe)
+            lignes = tableau_transferts.findAll("div", {"class": scrapp_func_global.transfermarkt_class_transfert_ligne})
+            lignes = [ligne for ligne in lignes if len(ligne["class"]) == 1]
+            # Inverse le tableau afin d'avoir les contrats dans un ordre croissant de date
+            lignes = lignes[::-1]
 
-        index_ligne_transfert = 0
-        contrats = []
-        while index_ligne_transfert < len(lignes):
-            ligne_transfert = lignes[index_ligne_transfert]
-            if index_ligne_transfert == len(lignes) - 1:
-                index_ligne_transfert += 1
-            montant_transfert = getMontantTransfertLigne(ligne_transfert)
-            montant_transfert_ligne = montant_transfert
-            date_transfert = getDateTransfertLigne(ligne_transfert)
-            club_partant = getClubPartantLigne(ligne_transfert)
-            club_entrant = getClubEntrantLigne(ligne_transfert)
-            club_partant_nom = club_partant["nom"]
-            club_partant_id = club_partant["id"]
-            club_entrant_nom = club_entrant["nom"]
-            club_entrant_id = club_entrant["id"]
+            index_ligne_transfert = 0
+            contrats = []
 
-            contrat = copy.deepcopy(scrapp_func_global.contrat_vide)
-            contrat["debut"] = date_transfert
+            while index_ligne_transfert < len(lignes):
+                # Récupération de la ligne de transfert que l'on traite
+                ligne_transfert = lignes[index_ligne_transfert]
 
-            if montant_transfert == "Transfert libre":
-                contrat["libre"] = True
-            else:
-                contrat["transfert"] = True
-                contrat["montant"] = montantToInt(montant_transfert)
-
-            # S'il s'agit du premier contrat du joueur et qu'il s'agit de son club formateur
-            if index_ligne_transfert == 0 and montant_transfert == "-" \
-                    and club_partant_nom != "Fin de carrière" and club_partant_nom != "Pause carrière":
-                contrat["formation"] = True
-
-            if index_ligne_transfert < len(lignes) - 1:
-                # Récupération de la dernière ligne de son départ définitif ou non si toujours au club
-                while index_ligne_transfert < len(lignes) and \
-                        ((date_transfert == contrat["debut"] and montant_transfert == montant_transfert_ligne)
-                         or (montant_transfert == "-" or re.search("prêt", montant_transfert, re.IGNORECASE))):
-                    ligne_transfert = lignes[index_ligne_transfert]
-                    montant_transfert = getMontantTransfertLigne(ligne_transfert)
-                    pret = getContratPret(lignes, index_ligne_transfert, ligne_transfert, row)
-
-                    club_entrant = getClubEntrantLigne(ligne_transfert)
-                    club_entrant_nom = club_entrant["nom"]
-                    club_entrant_id = club_entrant["id"]
-                    if pret is not None:
-                        contrats.append(pret)
-                        logging.debug(" - - " + pret["club"] + " : Prêt")
-                    else:
-                        if club_entrant_nom == "Fin de carrière":
-                            montant_transfert = "retraite"
-                            contrat["retraite_fin"] = True
-                        elif club_entrant_nom == "Pause carrière":
-                            montant_transfert = "pause"
-                    index_ligne_transfert += 1
-                index_ligne_transfert -= 1
-            club_entrant = getClubEntrantLigne(ligne_transfert)
-            club_partant = getClubPartantLigne(ligne_transfert)
-            # Si le joueur est toujours au club
-            if montant_transfert == 'Fin du prêt':
-                contrat["club"] = club_entrant["id"]
-                contrat["fin"] = date_fin_contrat
                 if index_ligne_transfert == len(lignes) - 1:
                     index_ligne_transfert += 1
-            elif montant_transfert == "-" or re.search("prêt", montant_transfert,
-                                                       re.IGNORECASE) or index_ligne_transfert == len(lignes):
-                contrat["club"] = club_entrant["id"]
-                contrat["fin"] = date_fin_contrat
-                if index_ligne_transfert == len(lignes) - 1:
+
+
+                montant_transfert = getMontantTransfertLigne(ligne_transfert)
+
+                montant_transfert_ligne = montant_transfert
+
+                date_transfert = getDateTransfertLigne(ligne_transfert)
+
+                club_partant = getClubPartantLigne(ligne_transfert)
+                club_entrant = getClubEntrantLigne(ligne_transfert)
+                club_partant_nom = club_partant["nom"]
+                club_partant_id = club_partant["id"]
+                club_entrant_nom = club_entrant["nom"]
+                club_entrant_id = club_entrant["id"]
+
+                contrat = copy.deepcopy(scrapp_func_global.contrat_vide)
+                contrat["debut"] = date_transfert
+
+                if montant_transfert == "Transfert libre":
+                    contrat["libre"] = True
+                else:
+                    contrat["transfert"] = True
+                    contrat["montant"] = montantToInt(montant_transfert)
+
+                # S'il s'agit du premier contrat du joueur et qu'il s'agit de son club formateur
+                if index_ligne_transfert == 0 and montant_transfert == "-" \
+                        and club_partant_nom != "Fin de carrière" and club_partant_nom != "Pause carrière":
+                    contrat["formation"] = True
+
+
+                # Récupération de la dernière ligne de son départ définitif ou non si toujours au club (s'il ne s'agit pas de la dernière)
+                if index_ligne_transfert < len(lignes) - 1:
+                    # Tant qu'il s'agit de la même ligne ou qu'il s'agit d'une ligne correspondant à un prêt
+                    while index_ligne_transfert < len(lignes) and \
+                            ((date_transfert == contrat["debut"] and montant_transfert == montant_transfert_ligne)
+                             or (montant_transfert == "-" or re.search("prêt", montant_transfert, re.IGNORECASE))):
+                        ligne_transfert = lignes[index_ligne_transfert]
+
+                        montant_transfert = getMontantTransfertLigne(ligne_transfert)
+
+                        pret = getContratPret(lignes, index_ligne_transfert, ligne_transfert, row)
+
+                        club_entrant = getClubEntrantLigne(ligne_transfert)
+                        club_entrant_nom = club_entrant["nom"]
+                        club_entrant_id = club_entrant["id"]
+                        if pret is not None:
+                            contrats.append(pret)
+                            logging.info(f"[INFO] -- {pret['club']} : Prêt")
+                        else:
+                            if club_entrant_nom == "Fin de carrière":
+                                montant_transfert = "retraite"
+                                contrat["retraite_fin"] = True
+                            elif club_entrant_nom == "Pause carrière":
+                                montant_transfert = "pause"
+                        index_ligne_transfert += 1
+                    index_ligne_transfert -= 1
+
+                club_entrant = getClubEntrantLigne(ligne_transfert)
+                club_partant = getClubPartantLigne(ligne_transfert)
+
+                # Si le joueur est toujours au club
+                if montant_transfert == 'Fin du prêt':
+                    contrat["club"] = club_entrant["id"]
+                    contrat["fin"] = date_fin_contrat
+                    if index_ligne_transfert == len(lignes) - 1:
+                        index_ligne_transfert += 1
+                elif montant_transfert == "-" or re.search("prêt", montant_transfert,
+                                                           re.IGNORECASE) or index_ligne_transfert == len(lignes):
+                    contrat["club"] = club_entrant["id"]
+                    contrat["fin"] = date_fin_contrat
+                    if index_ligne_transfert == len(lignes) - 1:
+                        index_ligne_transfert += 1
+                else:
+                    contrat["club"] = club_partant["id"]
+                    contrat["fin"] = getDateTransfertLigne(ligne_transfert)
+                contrats.append(contrat)
+                logging.info(f"[INFO] -- {contrat['club']} : Transfert")
+                if club_entrant_nom == "Pause carrière" or club_entrant_nom == "Fin de carrière":
                     index_ligne_transfert += 1
-            else:
-                contrat["club"] = club_partant["id"]
-                contrat["fin"] = getDateTransfertLigne(ligne_transfert)
-            contrats.append(contrat)
-            logging.debug(" - - " + contrat["club"] + " : Transfert")
-            if club_entrant_nom == "Pause carrière" or club_entrant_nom == "Fin de carrière":
-                index_ligne_transfert += 1
-        contrats.sort(key=lambda x: x["debut"], reverse=True)
-        return contrats
+            contrats.sort(key=lambda x: x["debut"], reverse=True)
+            return contrats
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logging.error(
+                f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération des contrats "
+                f"du joueur {joueur_to_scrapp['id']} : {e} !")
+
     return None
 
 
@@ -627,79 +844,46 @@ def majContratsJoueur(joueur, joueur_to_scrapp, date_fin_contrat):
     result = requests.get(link, headers=scrapp_func_global.headers)
     if result.ok:
         soup = BeautifulSoup(result.text, "html.parser")
-        row = soup.find("div", {"id": "subnavi"}).find_next_sibling("div", {"class": "row"})
-        titre_tableau_transferts = row.find("h2",
-                                            text=re.compile(scrapp_func_global.transfermarkt_historique_transfert_find))
-        tableau_transferts = titre_tableau_transferts.find_parent()
+        try:
+            # Récupération de la div contenant les données du joueur (le body de la page du joueur en somme)
+            row = soup.find("div", {"id": "subnavi"}).find_next_sibling("div", {"class": "row"})
 
-        lignes = tableau_transferts.findAll("div", {"class": scrapp_func_global.transfermarkt_class_transfert_ligne})
-        lignes = [ligne for ligne in lignes if len(ligne["class"]) == 1]
-        lignes = lignes[::-1]
+            # Récupération du tableau contenant les différents transferts du joueur
+            titre_tableau_transferts = row.find("h2",
+                                                text=re.compile(scrapp_func_global.transfermarkt_historique_transfert_find))
+            tableau_transferts = titre_tableau_transferts.find_parent()
 
-        index_ligne_transfert = 0
-        while index_ligne_transfert < len(lignes):
-            ligne_transfert = lignes[index_ligne_transfert]
-            date_transfert = getDateTransfertLigne(ligne_transfert)
-            club_entrant = getClubEntrantLigne(ligne_transfert)
-            # S'il s'agit de la ligne représentant le transfert du dernier contrat sauvegardé
-            if dernier_contrat["debut"] == date_transfert and dernier_contrat["club"] == club_entrant["id"]:
-                # Si le dernier contrat est un prêt on va chercher la date de fin de ce prêt
-                if dernier_contrat["pret"]:
-                    montant_transfert = ""
-                    while index_ligne_transfert < len(lignes) and montant_transfert != "Fin du prêt":
-                        ligne_transfert = lignes[index_ligne_transfert]
-                        montant_transfert = getMontantTransfertLigne(ligne_transfert)
-                        index_ligne_transfert += 1
-                    index_ligne_transfert -= 1
-                    if montant_transfert == "Fin de prêt":
-                        dernier_contrat["fin"] = getDateTransfertLigne(ligne_transfert)
+            # Récupération des lignes du tableau correspondant à un 'transfert' (une seule classe)
+            lignes = tableau_transferts.findAll("div", {"class": scrapp_func_global.transfermarkt_class_transfert_ligne})
+            lignes = [ligne for ligne in lignes if len(ligne["class"]) == 1]
+            # Inverse le tableau afin d'avoir les contrats dans un ordre croissant de date
+            lignes = lignes[::-1]
 
-                    montant_transfert_ligne = montant_transfert
-                    while index_ligne_transfert < len(lignes) and \
-                            ((date_transfert == contrat_actuel[
-                                "debut"] and montant_transfert == montant_transfert_ligne)
-                             or (montant_transfert == "-" or re.search("prêt", montant_transfert, re.IGNORECASE))):
-                        ligne_transfert = lignes[index_ligne_transfert]
-                        montant_transfert = getMontantTransfertLigne(ligne_transfert)
-                        pret = getContratPret(lignes, index_ligne_transfert, ligne_transfert, row)
+            index_ligne_transfert = 0
 
-                        club_entrant = getClubEntrantLigne(ligne_transfert)
-                        club_entrant_nom = club_entrant["nom"]
-                        club_entrant_id = club_entrant["id"]
-                        if pret is not None:
-                            contrats.append(pret)
-                            logging.debug(" - - " + pret["club"] + " : Prêt")
-                        else:
-                            if club_entrant_nom == "Fin de carrière":
-                                montant_transfert = "retraite"
-                                contrat_actuel["retraite_fin"] = True
-                            elif club_entrant_nom == "Pause carrière":
-                                montant_transfert = "pause"
-                        index_ligne_transfert += 1
-                    index_ligne_transfert -= 1
-                    club_entrant = getClubEntrantLigne(ligne_transfert)
-                    club_entrant_nom = club_entrant["nom"]
-                    club_partant = getClubPartantLigne(ligne_transfert)
-                    # Si le joueur est toujours au club
-                    if montant_transfert == "-":
-                        contrat_actuel["fin"] = date_fin_contrat
-                    else:
-                        contrat_actuel["fin"] = getDateTransfertLigne(ligne_transfert)
+            while index_ligne_transfert < len(lignes):
+                # Récupération de la ligne de transfert que l'on traite
+                ligne_transfert = lignes[index_ligne_transfert]
 
-                    if club_entrant_nom == "Pause carrière" or club_entrant_nom == "Fin de carrière":
-                        index_ligne_transfert += 1
-                # Si le dernier est contrat est un transfer sec
-                else:
-                    # Si le dernier contrat enregistré est le dernier des transferts on change la fin du contrat
-                    if index_ligne_transfert == len(lignes) - 1:
-                        dernier_contrat["fin"] = date_fin_contrat
-                        index_ligne_transfert += 1
-                    # Si le joueur a eu d'autres transferts d'ici la dernière sauvegarde
-                    else:
-                        montant_transfert = getMontantTransfertLigne(ligne_transfert)
+                date_transfert = getDateTransfertLigne(ligne_transfert)
+                club_entrant = getClubEntrantLigne(ligne_transfert)
+
+                # S'il s'agit de la ligne représentant le transfert du dernier contrat sauvegardé
+                if dernier_contrat["debut"] == date_transfert and dernier_contrat["club"] == club_entrant["id"]:
+                    # Si le dernier contrat est un prêt on va chercher la date de fin de ce prêt
+                    if dernier_contrat["pret"]:
+                        montant_transfert = ""
+                        while index_ligne_transfert < len(lignes) and montant_transfert != "Fin du prêt":
+                            ligne_transfert = lignes[index_ligne_transfert]
+                            montant_transfert = getMontantTransfertLigne(ligne_transfert)
+                            index_ligne_transfert += 1
+                        index_ligne_transfert -= 1
+                        if montant_transfert == "Fin de prêt":
+                            dernier_contrat["fin"] = getDateTransfertLigne(ligne_transfert)
+
                         montant_transfert_ligne = montant_transfert
                         while index_ligne_transfert < len(lignes) and \
-                                ((date_transfert == dernier_contrat[
+                                ((date_transfert == contrat_actuel[
                                     "debut"] and montant_transfert == montant_transfert_ligne)
                                  or (montant_transfert == "-" or re.search("prêt", montant_transfert, re.IGNORECASE))):
                             ligne_transfert = lignes[index_ligne_transfert]
@@ -711,11 +895,11 @@ def majContratsJoueur(joueur, joueur_to_scrapp, date_fin_contrat):
                             club_entrant_id = club_entrant["id"]
                             if pret is not None:
                                 contrats.append(pret)
-                                logging.debug(" - - " + pret["club"] + " : Prêt")
+                                logging.info(f"[INFO] -- {pret['club']} : Prêt")
                             else:
                                 if club_entrant_nom == "Fin de carrière":
                                     montant_transfert = "retraite"
-                                    dernier_contrat["retraite_fin"] = True
+                                    contrat_actuel["retraite_fin"] = True
                                 elif club_entrant_nom == "Pause carrière":
                                     montant_transfert = "pause"
                             index_ligne_transfert += 1
@@ -725,171 +909,241 @@ def majContratsJoueur(joueur, joueur_to_scrapp, date_fin_contrat):
                         club_partant = getClubPartantLigne(ligne_transfert)
                         # Si le joueur est toujours au club
                         if montant_transfert == "-":
-                            dernier_contrat["fin"] = date_fin_contrat
+                            contrat_actuel["fin"] = date_fin_contrat
                         else:
-                            dernier_contrat["fin"] = getDateTransfertLigne(ligne_transfert)
+                            contrat_actuel["fin"] = getDateTransfertLigne(ligne_transfert)
+
                         if club_entrant_nom == "Pause carrière" or club_entrant_nom == "Fin de carrière":
                             index_ligne_transfert += 1
-            else:
-                if date_transfert > dernier_contrat["debut"]:
-                    montant_transfert = getMontantTransfertLigne(ligne_transfert)
-                    montant_transfert_ligne = montant_transfert
-                    club_partant = getClubPartantLigne(ligne_transfert)
-                    club_partant_nom = club_partant["nom"]
-                    club_partant_id = club_partant["id"]
-                    club_entrant_nom = club_entrant["nom"]
-                    club_entrant_id = club_entrant["id"]
-
-                    contrat = copy.deepcopy(scrapp_func_global.contrat_vide)
-                    contrat["debut"] = date_transfert
-
-                    if montant_transfert == "Transfert libre":
-                        contrat["libre"] = True
+                    # Si le dernier est contrat est un transfer sec
                     else:
-                        contrat["transfert"] = True
-                        contrat["montant"] = montantToInt(montant_transfert)
-
-                    # S'il s'agit du premier contrat du joueur et qu'il s'agit de son club formateur
-                    if index_ligne_transfert == 0 and montant_transfert == "-" \
-                            and club_partant_nom != "Fin de carrière" and club_partant_nom != "Pause carrière":
-                        contrat["formation"] = True
-
-                    if index_ligne_transfert == len(lignes) - 1:
-                        index_ligne_transfert += 1
-                    if index_ligne_transfert < len(lignes) - 1:
-                        # Récupération de la dernière ligne de son départ définitif ou non si toujours au club
-                        while index_ligne_transfert < len(lignes) and \
-                                ((date_transfert == contrat["debut"] and montant_transfert == montant_transfert_ligne)
-                                 or (montant_transfert == "-" or re.search("prêt", montant_transfert, re.IGNORECASE))):
-                            ligne_transfert = lignes[index_ligne_transfert]
+                        # Si le dernier contrat enregistré est le dernier des transferts on change la fin du contrat
+                        if index_ligne_transfert == len(lignes) - 1:
+                            dernier_contrat["fin"] = date_fin_contrat
+                            index_ligne_transfert += 1
+                        # Si le joueur a eu d'autres transferts d'ici la dernière sauvegarde
+                        else:
                             montant_transfert = getMontantTransfertLigne(ligne_transfert)
-                            pret = getContratPret(lignes, index_ligne_transfert, ligne_transfert, row)
+                            montant_transfert_ligne = montant_transfert
+                            while index_ligne_transfert < len(lignes) and \
+                                    ((date_transfert == dernier_contrat[
+                                        "debut"] and montant_transfert == montant_transfert_ligne)
+                                     or (montant_transfert == "-" or re.search("prêt", montant_transfert, re.IGNORECASE))):
+                                ligne_transfert = lignes[index_ligne_transfert]
+                                montant_transfert = getMontantTransfertLigne(ligne_transfert)
+                                pret = getContratPret(lignes, index_ligne_transfert, ligne_transfert, row)
 
+                                club_entrant = getClubEntrantLigne(ligne_transfert)
+                                club_entrant_nom = club_entrant["nom"]
+                                club_entrant_id = club_entrant["id"]
+                                if pret is not None:
+                                    contrats.append(pret)
+                                    logging.info(f"[INFO] -- {pret['club']} : Prêt")
+                                else:
+                                    if club_entrant_nom == "Fin de carrière":
+                                        montant_transfert = "retraite"
+                                        dernier_contrat["retraite_fin"] = True
+                                    elif club_entrant_nom == "Pause carrière":
+                                        montant_transfert = "pause"
+                                index_ligne_transfert += 1
+                            index_ligne_transfert -= 1
                             club_entrant = getClubEntrantLigne(ligne_transfert)
                             club_entrant_nom = club_entrant["nom"]
-                            club_entrant_id = club_entrant["id"]
-                            if pret is not None:
-                                contrats.append(pret)
-                                logging.debug(" - - " + pret["club"] + " : Prêt")
+                            club_partant = getClubPartantLigne(ligne_transfert)
+                            # Si le joueur est toujours au club
+                            if montant_transfert == "-":
+                                dernier_contrat["fin"] = date_fin_contrat
                             else:
-                                if club_entrant_nom == "Fin de carrière":
-                                    montant_transfert = "retraite"
-                                    contrat["retraite_fin"] = True
-                                elif club_entrant_nom == "Pause carrière":
-                                    montant_transfert = "pause"
-                            index_ligne_transfert += 1
-                        index_ligne_transfert -= 1
-                    club_entrant = getClubEntrantLigne(ligne_transfert)
-                    club_partant = getClubPartantLigne(ligne_transfert)
-                    # Si le joueur est toujours au club
-                    if montant_transfert == 'Fin du prêt':
-                        contrat["club"] = club_entrant["id"]
-                        contrat["fin"] = date_fin_contrat
+                                dernier_contrat["fin"] = getDateTransfertLigne(ligne_transfert)
+                            if club_entrant_nom == "Pause carrière" or club_entrant_nom == "Fin de carrière":
+                                index_ligne_transfert += 1
+                else:
+                    if date_transfert > dernier_contrat["debut"]:
+                        montant_transfert = getMontantTransfertLigne(ligne_transfert)
+                        montant_transfert_ligne = montant_transfert
+                        club_partant = getClubPartantLigne(ligne_transfert)
+                        club_partant_nom = club_partant["nom"]
+                        club_partant_id = club_partant["id"]
+                        club_entrant_nom = club_entrant["nom"]
+                        club_entrant_id = club_entrant["id"]
+
+                        contrat = copy.deepcopy(scrapp_func_global.contrat_vide)
+                        contrat["debut"] = date_transfert
+
+                        if montant_transfert == "Transfert libre":
+                            contrat["libre"] = True
+                        else:
+                            contrat["transfert"] = True
+                            contrat["montant"] = montantToInt(montant_transfert)
+
+                        # S'il s'agit du premier contrat du joueur et qu'il s'agit de son club formateur
+                        if index_ligne_transfert == 0 and montant_transfert == "-" \
+                                and club_partant_nom != "Fin de carrière" and club_partant_nom != "Pause carrière":
+                            contrat["formation"] = True
+
                         if index_ligne_transfert == len(lignes) - 1:
                             index_ligne_transfert += 1
-                    elif montant_transfert == "-" or re.search("prêt", montant_transfert,
-                                                               re.IGNORECASE) or index_ligne_transfert == len(
-                        lignes) or index_ligne_transfert == len(lignes):
-                        contrat["club"] = club_entrant["id"]
-                        contrat["fin"] = date_fin_contrat
-                        if index_ligne_transfert == len(lignes) - 1:
+                        if index_ligne_transfert < len(lignes) - 1:
+                            # Récupération de la dernière ligne de son départ définitif ou non si toujours au club
+                            while index_ligne_transfert < len(lignes) and \
+                                    ((date_transfert == contrat["debut"] and montant_transfert == montant_transfert_ligne)
+                                     or (montant_transfert == "-" or re.search("prêt", montant_transfert, re.IGNORECASE))):
+                                ligne_transfert = lignes[index_ligne_transfert]
+                                montant_transfert = getMontantTransfertLigne(ligne_transfert)
+                                pret = getContratPret(lignes, index_ligne_transfert, ligne_transfert, row)
+
+                                club_entrant = getClubEntrantLigne(ligne_transfert)
+                                club_entrant_nom = club_entrant["nom"]
+                                club_entrant_id = club_entrant["id"]
+                                if pret is not None:
+                                    contrats.append(pret)
+                                    logging.info(f"[INFO] -- {pret['club']} : Prêt")
+                                else:
+                                    if club_entrant_nom == "Fin de carrière":
+                                        montant_transfert = "retraite"
+                                        contrat["retraite_fin"] = True
+                                    elif club_entrant_nom == "Pause carrière":
+                                        montant_transfert = "pause"
+                                index_ligne_transfert += 1
+                            index_ligne_transfert -= 1
+                        club_entrant = getClubEntrantLigne(ligne_transfert)
+                        club_partant = getClubPartantLigne(ligne_transfert)
+                        # Si le joueur est toujours au club
+                        if montant_transfert == 'Fin du prêt':
+                            contrat["club"] = club_entrant["id"]
+                            contrat["fin"] = date_fin_contrat
+                            if index_ligne_transfert == len(lignes) - 1:
+                                index_ligne_transfert += 1
+                        elif montant_transfert == "-" or re.search("prêt", montant_transfert,
+                                                                   re.IGNORECASE) or index_ligne_transfert == len(
+                            lignes) or index_ligne_transfert == len(lignes):
+                            contrat["club"] = club_entrant["id"]
+                            contrat["fin"] = date_fin_contrat
+                            if index_ligne_transfert == len(lignes) - 1:
+                                index_ligne_transfert += 1
+                        else:
+                            contrat["club"] = club_partant["id"]
+                            contrat["fin"] = getDateTransfertLigne(ligne_transfert)
+                        contrats.append(contrat)
+                        logging.info(f"[INFO] -- {contrat['club']} : Transfert")
+                        if club_entrant_nom == "Pause carrière" or club_entrant_nom == "Fin de carrière":
                             index_ligne_transfert += 1
                     else:
-                        contrat["club"] = club_partant["id"]
-                        contrat["fin"] = getDateTransfertLigne(ligne_transfert)
-                    contrats.append(contrat)
-                    logging.debug(" - - " + contrat["club"] + " : Transfert")
-                    if club_entrant_nom == "Pause carrière" or club_entrant_nom == "Fin de carrière":
                         index_ligne_transfert += 1
-                else:
-                    index_ligne_transfert += 1
-        contrats.sort(key=lambda x: x["debut"], reverse=True)
+            contrats.sort(key=lambda x: x["debut"], reverse=True)
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logging.error(
+                f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la màj des contrats du joueur "
+                f"{joueur['nom_complet']} : {e} !")
         return contrats
 
 
 def getMontantTransfertLigne(ligne):
     montant = 0
-    montant_transfert = ligne.find("div", {"class": scrapp_func_global.transfermarkt_class_transfert_ligne + "__fee"})
-    if montant_transfert is not None:
-        montant = montant_transfert.text.strip()
+    try :
+        montant_transfert = ligne.find("div", {"class": scrapp_func_global.transfermarkt_class_transfert_ligne + "__fee"})
+        if montant_transfert is not None:
+            montant = montant_transfert.text.strip()
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        logging.error(
+            f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération du montant d'un transfert : {e} !")
     return montant
 
 
 def getDateTransfertLigne(ligne):
     date = ""
-    date_transfert = ligne.find("div", {"class": scrapp_func_global.transfermarkt_class_transfert_ligne + "__date"})
-    if date_transfert is not None:
+    try:
+        date_transfert = ligne.find("div", {"class": scrapp_func_global.transfermarkt_class_transfert_ligne + "__date"})
         date_transfert = date_transfert.text.strip()
-        if date_transfert is not None:
-            date_transfert = datetime.strptime(date_transfert, "%d %b %Y")
-            if date_transfert is not None:
-                date = date_transfert.date().isoformat()
+        date_transfert = datetime.strptime(date_transfert, "%d %b %Y")
+        date = date_transfert.date().isoformat()
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        logging.error(
+            f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération de la date d'un transfert"
+            f" : {e} !")
     return date
 
 
 def getClubEntrantLigne(ligne):
-    club_entrant_div = ligne.find("div",
-                                  {"class": scrapp_func_global.transfermarkt_class_transfert_ligne + "__new-club"})
     club = {"id": -1, "nom": ""}
-    if club_entrant_div is not None:
-        club["nom"] = club_entrant_div.text.strip()
-    if club["nom"] != "Fin de carrière" and club["nom"] != "Pause carrière" and club["nom"] != "":
-        link_club = club_entrant_div.find("a")
-        if link_club is not None:
+    try:
+        club_entrant_div = ligne.find("div",
+                                      {"class": scrapp_func_global.transfermarkt_class_transfert_ligne + "__new-club"})
+        if club_entrant_div is not None:
+            club["nom"] = club_entrant_div.text.strip()
+        if club["nom"] != "Fin de carrière" and club["nom"] != "Pause carrière" and club["nom"] != "":
+            link_club = club_entrant_div.find("a")
             link_club = link_club["href"]
             link_club = link_club[:link_club.find("/saison_id/")]
             match = (re.search("/verein/", link_club))
             id = link_club[match.end():]
             club["id"] = id
             link_club = link_club.replace(scrapp_func_global.transfermarkt_transferts_joueur,
-                                          scrapp_func_global.transfermarkt_url_replace)
-            getInfoClub({"id": id, "link": scrapp_func_global.transfermarkt_base_url + link_club})
+                                              scrapp_func_global.transfermarkt_url_replace)
+            getInfoClub({"id": id, "nom": club["nom"], "link": scrapp_func_global.transfermarkt_base_url + link_club})
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        logging.error(
+            f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération d'un club entrant d'un transfert"
+            f" : {e} !")
     return club
 
 
 def getClubPartantLigne(ligne):
-    club_sortant_div = ligne.find("div",
-                                  {"class": scrapp_func_global.transfermarkt_class_transfert_ligne + "__old-club"})
     club = {"id": -1, "nom": ""}
-    if club_sortant_div is not None:
-        club["nom"] = club_sortant_div.text.strip()
-    if club["nom"] != "Fin de carrière" and club["nom"] != "Pause carrière" and club["nom"] != "":
-        link_club = club_sortant_div.find("a")
-        if link_club is not None:
-            link_club = link_club["href"]
-            link_club = link_club[:link_club.find("/saison_id/")]
-            match = (re.search("/verein/", link_club))
-            id = link_club[match.end():]
-            club["id"] = id
-            link_club = link_club.replace(scrapp_func_global.transfermarkt_transferts_joueur,
-                                          scrapp_func_global.transfermarkt_url_replace)
-            getInfoClub({"id": id, "link": scrapp_func_global.transfermarkt_base_url + link_club})
-    return club
+    try:
+        club_sortant_div = ligne.find("div",
+                                      {"class": scrapp_func_global.transfermarkt_class_transfert_ligne + "__old-club"})
+        if club_sortant_div is not None:
+            club["nom"] = club_sortant_div.text.strip()
+        if club["nom"] != "Fin de carrière" and club["nom"] != "Pause carrière" and club["nom"] != "":
+            link_club = club_sortant_div.find("a")
+            if link_club is not None:
+                link_club = link_club["href"]
+                link_club = link_club[:link_club.find("/saison_id/")]
+                match = (re.search("/verein/", link_club))
+                id = link_club[match.end():]
+                club["id"] = id
+                link_club = link_club.replace(scrapp_func_global.transfermarkt_transferts_joueur,
+                                              scrapp_func_global.transfermarkt_url_replace)
+                getInfoClub({"id": id, "nom": club["nom"], "link": scrapp_func_global.transfermarkt_base_url + link_club})
+        return club
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        logging.error(
+            f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération d'un club partant d'un "
+            f"transfert : {e} !")
 
 
 def getContratPret(lignes, index_ligne, ligne, page):
-    montant = getMontantTransfertLigne(ligne)
-    # S'il s'agit du début d'un prêt
-    if re.search("prêt", montant, re.IGNORECASE) and montant != "Fin du prêt":
-        contrat = copy.deepcopy(scrapp_func_global.contrat_vide)
-        club_entrant = getClubEntrantLigne(ligne)
-        contrat["club"] = club_entrant["id"]
-        contrat["debut"] = getDateTransfertLigne(ligne)
-        contrat["pret"] = True
-        club_partant = getClubPartantLigne(ligne)
-        while index_ligne < len(lignes) and (montant != "Fin du prêt" and club_partant != club_entrant):
-            ligne = lignes[index_ligne]
-            montant = getMontantTransfertLigne(ligne)
+    try:
+        montant = getMontantTransfertLigne(ligne)
+        # S'il s'agit du début d'un prêt
+        if re.search("prêt", montant, re.IGNORECASE) and montant != "Fin du prêt":
+            contrat = copy.deepcopy(scrapp_func_global.contrat_vide)
+            club_entrant = getClubEntrantLigne(ligne)
+            contrat["club"] = club_entrant["id"]
+            contrat["debut"] = getDateTransfertLigne(ligne)
+            contrat["pret"] = True
             club_partant = getClubPartantLigne(ligne)
-            index_ligne += 1
-        index_ligne -= 1
-        contrat["fin"] = getDateTransfertLigne(ligne)
-        return contrat
+            # Récupération de la ligne correspondant à la fin du prêt
+            while index_ligne < len(lignes) and (montant != "Fin du prêt" and club_partant != club_entrant):
+                ligne = lignes[index_ligne]
+                montant = getMontantTransfertLigne(ligne)
+                club_partant = getClubPartantLigne(ligne)
+                index_ligne += 1
+            index_ligne -= 1
+            contrat["fin"] = getDateTransfertLigne(ligne)
+            return contrat
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        logging.error(
+            f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération du contrat (prêt) pour la "
+            f"ligne avec comme index {index_ligne} : {e} !")
     return None
-
-
-def correctFormatDate(date):
-    return bool(re.match('^[0-9]{1,2} [A-zÀ-ÿ.]{4,5} [0-9]{4}$', date))
 
 
 def montantToInt(montant):
@@ -904,8 +1158,11 @@ def montantToInt(montant):
             montant = int(montant)
             return montant
         return int(montant)
-    except ValueError:
-        pass
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        logging.error(
+            f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la tentative de passage du montant d'un "
+            f"transfert en int : {e} !")
     return 0
 
 
