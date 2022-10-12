@@ -4,8 +4,14 @@ from pathlib import Path
 import scrapp_func_global
 import scrapp_func_clubs
 import logging
+from datetime import datetime
 
-logging.basicConfig(filename="log.txt", level=logging.DEBUG, encoding="UTF-8")
+date_str_filename = datetime.now().strftime("%d_%m_%Y_%H_%M_%f")
+log_filename = "log_scrapp_joueurs_" + date_str_filename
+
+log_file_path = Path("scrapp/log/" + log_filename)
+
+logging.basicConfig(filename=log_file_path, level=logging.INFO, encoding="UTF-8")
 
 locale.setlocale(locale.LC_ALL, 'fr_FR')
 

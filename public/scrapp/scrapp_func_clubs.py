@@ -7,6 +7,8 @@ from datetime import datetime
 import validators
 import scrapp_func_global
 import copy
+import sys
+from inspect import currentframe, getframeinfo
 
 
 def getIdClubsPresent():
@@ -20,18 +22,28 @@ def getClubsLigue1():
     clubs = []
     if (result.ok):
         soup = BeautifulSoup(result.text, "html.parser")
-        classement = soup.find("div", {"id": "yw1"}).find("table")
-        tds = classement.find("tbody").findAll("tr")
-        for td in tds:
-            href = td.find("a")['href']
-            link = scrapp_func_global.transfermarkt_base_url + href
-            link = link.replace(scrapp_func_global.transfermarkt_accueil_club,
-                                scrapp_func_global.transfermarkt_url_replace)
-            match = (re.search("/verein/", link))
-            name = href[href.find("/") + 1: href.find("/" + scrapp_func_global.transfermarkt_accueil_club)]
-            id = link[match.end():]
-            id = id[:id.find("/")]
-            clubs.append({"id": id, "link": link, "name": name})
+        try:
+            classement = soup.find("div", {"id": "yw1"}).find("table")
+            tds = classement.find("tbody").findAll("tr")
+            for td in tds:
+                try:
+                    href = td.find("a")['href']
+                    link = scrapp_func_global.transfermarkt_base_url + href
+                    link = link.replace(scrapp_func_global.transfermarkt_accueil_club,
+                                        scrapp_func_global.transfermarkt_url_replace)
+                    match = (re.search("/verein/", link))
+                    name = href[href.find("/") + 1: href.find("/" + scrapp_func_global.transfermarkt_accueil_club)]
+                    id = link[match.end():]
+                    id = id[:id.find("/")]
+                    clubs.append({"id": id, "link": link, "name": name})
+                except Exception as e:
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    logging.error(
+                        f"[ERROR] {exc_tb.tb_lineno} Problème au niveau de la récupération de l'id, nom et lien du club : {e} !")
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logging.error(
+                f"[ERROR] {exc_tb.tb_lineno} Le classement de la ligue 1 n'a pu être récupéré dans le DOM : {e} !")
     return clubs
 
 
@@ -49,76 +61,153 @@ def getInfoClub(club_to_scrapp):
             "site": '',
             "creation": '',
             "couleurs": [],
+            "logo_principal": '',
             "logos": [],
             "stade": {}
         }
         if result.ok:
             soup = BeautifulSoup(result.text, "html.parser")
-            # Récupération de la div contenant ces infos
-            row = soup.find("div", {"id": "subnavi"})
-            if row is None:
-                logging.error(club_to_scrapp)
-            else:
-                row = row.find_next_sibling("div", {"class": "row"})
-                if row is not None:
-                    box_info = row.find(text=re.compile(scrapp_func_global.transfermarkt_box_info_club_find))
-                    if box_info is not None:
-                        box_info = box_info.find_parent("div", {
-                            "class": "info-header"}).find_parent("div", {"class": "box"})
+            try:
+                # Récupération du bandeau bleu de navigation du club
+                subnavi = soup.find("div", {"id": "subnavi"})
+                # Récupération de la div contenant toutes les informations que l'on souhaite
+                row = subnavi.find_next_sibling("div", {"class": "row"})
 
+                try :
+                    # Récupération de la div contenant les informations du clubs
+                    box_info = row.find(text=re.compile(scrapp_func_global.transfermarkt_box_info_club_find))
+                    box_info = box_info.find_parent("div", {
+                        "class": "info-header"}).find_parent("div", {"class": "box"})
+
+                    # Récupération du nom du club
+                    try:
                         nom_club = box_info.find("th", text=re.compile(scrapp_func_global.transfermarkt_nom_club_find))
-                        if nom_club is not None:
-                            nom_club = nom_club.find_parent().find("td").text
-                            if nom_club is not None:
-                                club["nom"] = nom_club
+                        nom_club = nom_club.find_parent().find("td").text
+                        club["nom"] = nom_club
+                    except Exception as e:
+                        exc_type, exc_obj, exc_tb = sys.exc_info()
+                        logging.error(
+                            f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération du nom "
+                            f"du club {club_to_scrapp['nom']} ({club_to_scrapp['id']}) dans le DOM : {e} !")
+
+                    # Récupération du pays où le club est
+                    try:
                         pays_club = box_info.find("th",
                                                   text=re.compile(scrapp_func_global.transfermarkt_adresse_club_find))
-                        if pays_club is not None:
-                            pays_club = pays_club.find_parent().find_next_sibling().find_next_sibling().find("td").text
-                            if pays_club is not None:
-                                club["pays"] = triNation(pays_club)
+                        # On déduit que le pays du club est au troisième tr de l'adresse
+                        pays_club = pays_club.find_parent().find_next_sibling().find_next_sibling().find("td").text
+                        club["pays"] = triNation(pays_club)
+                    except Exception as e:
+                        exc_type, exc_obj, exc_tb = sys.exc_info()
+                        logging.error(
+                            f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération du pays "
+                            f"du club {club_to_scrapp['nom']} ({club_to_scrapp['id']}) dans le DOM : {e} !")
 
+                    # Récupération du site du club
+                    try:
                         site_club = box_info.find("th",
                                                   text=re.compile(scrapp_func_global.transfermarkt_site_club_find))
-                        if site_club is not None:
-                            site_club = site_club.find_parent().find("a")["href"]
-                            if site_club is not None:
-                                club["site"] = site_club
 
+                        site_club = site_club.find_parent().find("a")["href"]
+                        club["site"] = site_club
+                    except Exception as e:
+                        exc_type, exc_obj, exc_tb = sys.exc_info()
+                        logging.error(
+                            f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération du site "
+                            f"du club {club_to_scrapp['nom']} ({club_to_scrapp['id']}) dans le DOM : {e} !")
+
+                    # Récupération de la date de création du club
+                    try:
                         creation_club = box_info.find("th",
                                                       text=re.compile(scrapp_func_global.transfermarkt_annee_club_find))
-                        if creation_club is not None:
-                            creation_club = creation_club.find_parent().find("td").text
-                            if creation_club is not None:
-                                creation_club = datetime.strptime(creation_club.strip(), '%d %b %Y')
-                                if creation_club is not None:
-                                    club["creation"] = creation_club.date().isoformat()
+                        creation_club = creation_club.find_parent().find("td").text
+                        creation_club = datetime.strptime(creation_club.strip(), '%d %b %Y')
+                        club["creation"] = creation_club.date().isoformat()
+                    except Exception as e:
+                        exc_type, exc_obj, exc_tb = sys.exc_info()
+                        logging.error(
+                            f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération de de la "
+                            f"date de création du club {club_to_scrapp['nom']} ({club_to_scrapp['id']}) dans le DOM : {e} !")
 
-                        couleurs_club = []
+                    # Récupération des couleurs du club
+                    couleurs_club = []
+                    try:
                         couleurs = box_info.find("th",
                                                  text=re.compile(scrapp_func_global.transfermarkt_couleurs_club_find))
-                        if couleurs is not None:
-                            couleurs = couleurs.find_parent().find("td").find("p")
-                            for couleur in couleurs.findAll():
+                        couleurs = couleurs.find_parent().find("td").find("p")
+                        for couleur in couleurs.findAll():
+                            try :
                                 match = (re.search("background-color:", couleur["style"]))
                                 couleur = couleur["style"][match.end():-1]
-                                couleurs_club.append(couleur)
-                            if couleurs_club is not None:
-                                club["couleurs"] = couleurs_club
+                                if couleur != '':
+                                    couleurs_club.append(couleur)
+                                    club["couleurs"] = couleurs_club
+                            except Exception as e:
+                                exc_type, exc_obj, exc_tb = sys.exc_info()
+                                logging.error(
+                                    f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération d'une couleur "
+                                    f"du club {club_to_scrapp['nom']} ({club_to_scrapp['id']}) dans le DOM : {e} !")
+                    except Exception as e:
+                        exc_type, exc_obj, exc_tb = sys.exc_info()
+                        logging.error(
+                            f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération des couleurs  "
+                            f"du club {club_to_scrapp['nom']} ({club_to_scrapp['id']}) dans le DOM : {e} !")
 
-                        logos_club = []
-                        logos = soup.find("h2", text=re.compile(scrapp_func_global.transfermarkt_logo_club_find))
-                        if logos is not None:
-                            logos = logos.find_parent("div", {"class": "box"}).findAll("img")
-                            for logo in logos:
-                                if validators.url(logo["src"]):
-                                    logos_club.append(logo["src"])
-                            if logos_club is not None:
-                                club["logos"] = logos_club
+                    # Récupération du logo actuel du club
+                    try:
+                        lien_club = club_to_scrapp["link"].replace(scrapp_func_global.transfermarkt_url_replace,
+                                                                   scrapp_func_global.transfermarkt_accueil_club)
+                        lien_club = lien_club[lien_club.index(club_to_scrapp["nom"]) - 1: lien_club.index(
+                            str(club_to_scrapp["id"])) + len(str(club_to_scrapp["id"]))]
+                        img = box_info.find("a", {"href": lien_club}).find("img")["src"]
+                        club["logo_principal"] = img
+                    except Exception as e:
+                        exc_type, exc_obj, exc_tb = sys.exc_info()
+                        logging.error(
+                            f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération du logo actuel "
+                            f"du club {club_to_scrapp['nom']} ({club_to_scrapp['id']}) dans le DOM : {e} !")
+                except Exception as e:
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    logging.error(
+                        f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération des "
+                        f"informations du club {club_to_scrapp['nom']} ({club_to_scrapp['id']}) : {e} !")
 
-                        club["stade"] = getInfoStadeClub(club_to_scrapp)
-                        scrapp_func_global.all_clubs.append(club)
-                        scrapp_func_global.all_clubs_id.append(club["id_transfermarkt"])
+                # Récupération des anciens logos du club
+                logos_club = []
+                try:
+                    logos = soup.find("h2", text=re.compile(scrapp_func_global.transfermarkt_logo_club_find))
+                    logos = logos.find_parent("div", {"class": "box"}).findAll("img")
+                    for logo in logos:
+                        try:
+                            # Vérification que src soit bien un lien afin de ne pas récupérer uniquement un chemin sur un serv par ex.
+                            if validators.url(logo["src"]):
+                                logos_club.append(logo["src"])
+                        except Exception as e:
+                            exc_type, exc_obj, exc_tb = sys.exc_info()
+                            logging.error(
+                                f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération d'un ancien logo "
+                                f"du club {club_to_scrapp['nom']} ({club_to_scrapp['id']}) : {e} !")
+                except Exception as e:
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    logging.error(
+                        f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération des anciens logos "
+                        f"du club {club_to_scrapp['nom']} ({club_to_scrapp['id']}) : {e} !")
+
+                club["logos"] = logos_club
+                club["stade"] = getInfoStadeClub(club_to_scrapp)
+                scrapp_func_global.all_clubs.append(club)
+                print(club)
+                scrapp_func_global.all_clubs_id.append(club["id_transfermarkt"])
+
+            except Exception as e:
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                logging.error(
+                    f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération des informations "
+                    f"du club {club_to_scrapp['nom']} ({club_to_scrapp['id']}) : {e} !")
+    else:
+        frameinfo = getframeinfo(currentframe())
+        logging.error(
+            f"[ERROR] {frameinfo.lineno} Le club {club_to_scrapp['nom']} est déjà récupéré !")
 
 
 def getInfoStadeClub(club):
@@ -136,58 +225,98 @@ def getInfoStadeClub(club):
         soup = BeautifulSoup(result.text, "html.parser")
 
         # Récupération de la div contenant ces infos
-        row = soup.find("div", {"id": "subnavi"}).find_next_sibling("div", {"class": "row"})
+        try:
+            row = soup.find("div", {"id": "subnavi"}).find_next_sibling("div", {"class": "row"})
 
-        nom_stade = row.find("th", text=re.compile(scrapp_func_global.transfermarkt_nom_stade_find))
-        if nom_stade is not None:
-            nom_stade = nom_stade.find_parent().find("td").text
-            if nom_stade is not None:
+            # Récupération du nom du stade
+            try:
+                nom_stade = row.find("th", text=re.compile(scrapp_func_global.transfermarkt_nom_stade_find))
+                nom_stade = nom_stade.find_parent().find("td").text
                 stade["nom"] = nom_stade
+            except Exception as e:
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                logging.error(
+                    f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération du nom du stade "
+                    f"du club {club['nom']} ({club['id']}) : {e} !")
 
-        box_info = row.find("h1", text=re.compile(stade["nom"]))
-        if box_info is not None:
+            # Récupération de la div contenant les informations du stade via le nom de ce dernier
+            box_info = row.find("h1", text=re.compile(stade["nom"]))
             box_info = box_info.find_parent("div", {"class": "box"})
-            if box_info is not None:
-                capacite = box_info.find("th", text=re.compile(scrapp_func_global.transfermarkt_capacite_stade_find))
-                if capacite is not None:
-                    capacite = capacite.find_parent().find("td").text
-                    if capacite is not None:
-                        stade["capacite"] = int(capacite.replace('.', ''))
 
+            # Récupération de la capacité du stade
+            try:
+                capacite = box_info.find("th", text=re.compile(scrapp_func_global.transfermarkt_capacite_stade_find))
+                capacite = capacite.find_parent().find("td").text
+                stade["capacite"] = int(capacite.replace('.', ''))
+            except Exception as e:
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                logging.error(
+                    f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération de la capacité du stade "
+                    f"du club {club['nom']} ({club['id']}) : {e} !")
+
+            # Récupération de l'année de construction du stade
+            try:
                 construction = box_info.find("th", text=re.compile(
                     scrapp_func_global.transfermarkt_construction_stade_find))
-                if construction is not None:
-                    construction = construction.find_parent().find("td").text
-                    if construction is not None:
-                        stade["construction"] = int(construction)
+                construction = construction.find_parent().find("td").text
+                stade["construction"] = int(construction)
+            except Exception as e:
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                logging.error(
+                    f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération de l'année de "
+                    f"construction du stade du club {club['nom']} ({club['id']}) : {e} !")
 
-                images_stade = []
+            # Récupération des images du stade
+            images_stade = []
+            try:
                 images = box_info.findAll("img")
-                if images is not None:
-                    for logo in images:
+                for logo in images:
+                    try:
                         if validators.url(logo["src"]):
                             images_stade.append(logo["src"])
-                    if images_stade is not None:
-                        stade["images"] = images_stade
+                    except Exception as e:
+                        exc_type, exc_obj, exc_tb = sys.exc_info()
+                        logging.error(
+                            f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération d'une image du "
+                            f"stade du club {club['nom']} ({club['id']}) : {e} !")
+            except Exception as e:
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                logging.error(
+                    f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération des images du "
+                    f"stade du club {club['nom']} ({club['id']}) : {e} !")
 
-        box_adresse = row.find("h2", text=re.compile(scrapp_func_global.transfermarkt_box_adresse_stade_find))
-        if box_adresse is not None:
-            box_adresse = box_adresse.find_parent("div", {
-                "class": "box"})
-            tr_adresse = box_adresse.find("th",
-                                          text=re.compile(
-                                              scrapp_func_global.transfermarkt_adresse_stade_find)).find_parent(
-                "tr")
-            adresse = tr_adresse.find("td").text.strip()
-            tr_adresse = tr_adresse.find_next_sibling("tr")
-            th_text = tr_adresse.find("th").text
-            while th_text == "" and tr_adresse is not None:
-                adresse += ", " + tr_adresse.find("td").text.strip()
+            stade["images"] = images_stade
+
+            # Récupération de l'adresse du stade
+            adresse = ""
+            try:
+                box_adresse = row.find("h2", text=re.compile(scrapp_func_global.transfermarkt_box_adresse_stade_find))
+                box_adresse = box_adresse.find_parent("div", {
+                    "class": "box"})
+                tr_adresse = box_adresse.find("th",
+                                              text=re.compile(
+                                                  scrapp_func_global.transfermarkt_adresse_stade_find)).find_parent(
+                    "tr")
+                adresse = tr_adresse.find("td").text.strip()
                 tr_adresse = tr_adresse.find_next_sibling("tr")
-                if tr_adresse is not None:
-                    th_text = tr_adresse.find("th").text
-            if adresse is not None:
-                stade["adresse"] = adresse
+                th_text = tr_adresse.find("th").text
+                while th_text == "" and tr_adresse is not None:
+                    adresse += ", " + tr_adresse.find("td").text.strip()
+                    tr_adresse = tr_adresse.find_next_sibling("tr")
+                    if tr_adresse is not None:
+                        th_text = tr_adresse.find("th").text
+            except Exception as e:
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                logging.error(
+                    f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération de l'adresse du "
+                    f"stade du club {club['nom']} ({club['id']}) : {e} !")
+
+            stade["adresse"] = adresse
+
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logging.error(
+                f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération du club {club['nom']} ({club['id']}) : {e} !")
 
     return stade
 
@@ -201,43 +330,57 @@ def getJoueursClub(club_to_scrapp):
     if result.ok:
         soup = BeautifulSoup(result.text, "html.parser")
         table_effectif = soup.find("div", {"id": "yw1"}).find("table")
-        tr_joueurs = table_effectif.find("tbody").findAll("td", {"class": "posrela"})
-        for tr_joueur in tr_joueurs:
-            link = tr_joueur.find("table").find("a")["href"]
-            link = link.replace(scrapp_func_global.transfermarkt_info_joueur,
-                                scrapp_func_global.transfermarkt_url_replace)
-            match = (re.search("/spieler/", link))
-            id = link[match.end():]
-            joueur = {"id": id, "link": scrapp_func_global.transfermarkt_base_url + link}
-            joueurs.append(joueur)
-            getInfoJoueur(joueur)
+        try:
+            tr_joueurs = table_effectif.find("tbody").findAll("td", {"class": "posrela"})
+            for tr_joueur in tr_joueurs:
+                try:
+                    link = tr_joueur.find("table").find("a")["href"]
+                    link = link.replace(scrapp_func_global.transfermarkt_info_joueur,
+                                        scrapp_func_global.transfermarkt_url_replace)
+                    match = (re.search("/spieler/", link))
+                    id = link[match.end():]
+                    joueur = {"id": id, "link": scrapp_func_global.transfermarkt_base_url + link}
+                    joueurs.append(joueur)
+                    getInfoJoueur(joueur)
+                except Exception as e:
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    logging.error(
+                        f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération de l'id et du "
+                        f"lien d'un joueur du club {club_to_scrapp['nom']} ({club_to_scrapp['id']}) : {e} !")
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logging.error(
+                f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération de la liste des joueurs "
+                f"du club {club_to_scrapp['nom']} ({club_to_scrapp['id']}) : {e} !")
 
     return joueurs
 
 
 def getInfoJoueur(joueur_to_scrapp):
     id_transfermarkt = joueur_to_scrapp["id"]
-    if id_transfermarkt not in scrapp_func_global.all_joueurs_id:
-        # "Création" du lien du club où sont les infos de ce dernier
-        link = joueur_to_scrapp["link"].replace(scrapp_func_global.transfermarkt_url_replace,
+    # "Création" du lien du club où sont les infos de ce dernier
+    link = joueur_to_scrapp["link"].replace(scrapp_func_global.transfermarkt_url_replace,
                                                 scrapp_func_global.transfermarkt_info_joueur)
-        result = requests.get(link, headers=scrapp_func_global.headers)
-        joueur = {
-            "id_transfermarkt": joueur_to_scrapp["id"],
-            "nom": '',
-            "prenom": '',
-            "nom_complet": '',
-            "date_naissance": '',
-            "pays": [],
-            "positions_principales": [],
-            "positions_secondaires": [],
-            "pied": '',
-            "taille": 0,
-            "equipementier": '',
-            "contrats": []
-        }
-        if result.ok:
-            soup = BeautifulSoup(result.text, "html.parser")
+    result = requests.get(link, headers=scrapp_func_global.headers)
+    if result.ok:
+        soup = BeautifulSoup(result.text, "html.parser")
+        # Si le joueur n'est pas encore présent dans les données actuelles, récupération infos persos + carrière sinon
+        # juste mise à jour de la carrière
+        if id_transfermarkt not in scrapp_func_global.all_joueurs_id:
+            joueur = {
+                "id_transfermarkt": joueur_to_scrapp["id"],
+                "nom": '',
+                "prenom": '',
+                "nom_complet": '',
+                "date_naissance": '',
+                "pays": [],
+                "positions_principales": [],
+                "positions_secondaires": [],
+                "pied": '',
+                "taille": 0,
+                "equipementier": '',
+                "contrats": []
+            }
             # Récupération de la div contenant ces infos
             header = soup.find("main").find("header", {"class": "data-header"})
 
@@ -339,7 +482,7 @@ def getInfoJoueur(joueur_to_scrapp):
             if fin_contrat is not None:
                 fin_contrat = fin_contrat.find_parent().find_next_sibling().text
                 if fin_contrat is not None:
-                    try :
+                    try:
                         fin_contrat = datetime.strptime(fin_contrat.strip(), '%d %b %Y')
                         if fin_contrat is not None:
                             date_fin_contrat = fin_contrat.date().isoformat()
@@ -352,13 +495,7 @@ def getInfoJoueur(joueur_to_scrapp):
 
             scrapp_func_global.all_joueurs.append(joueur)
             scrapp_func_global.all_joueurs_id.append(joueur["id_transfermarkt"])
-    else:
-        # "Création" du lien du club où sont les infos de ce dernier
-        link = joueur_to_scrapp["link"].replace(scrapp_func_global.transfermarkt_url_replace,
-                                                scrapp_func_global.transfermarkt_info_joueur)
-        result = requests.get(link, headers=scrapp_func_global.headers)
-        if result.ok:
-            soup = BeautifulSoup(result.text, "html.parser")
+        else:
             row = soup.find("div", {"id": "subnavi"}).find_next_sibling("div", {"class": "row"})
             info_table = row.find("div", {"class": "info-table"})
 
