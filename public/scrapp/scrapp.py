@@ -47,8 +47,10 @@ if json_id_joueurs.exists():
 
 clubs = scrapp_func_clubs.getClubsLigue1()
 for club in clubs:
+    logging.info("-------------------------------------------------------------------------------------------------")
     logging.info(f"[INFO] {club['nom']} : En cours")
     scrapp_func_clubs.getInfoClub(club)
     scrapp_func_clubs.getJoueursClub(club)
     save()
     logging.info(f"[INFO] {club['nom']} : Terminé")
+    logging.info("-------------------------------------------------------------------------------------------------")

@@ -710,6 +710,7 @@ def getInfoJoueur(joueur_to_scrapp):
                 return
         joueur["date_maj"] = datetime.now().isoformat()
         logging.info(f"[INFO] - {joueur['nom_complet']} : Terminé")
+        logging.info("-------------------------------------------------------------------------------------------------")
 
 
 def getContratsJoueur(joueur_to_scrapp, date_fin_contrat):

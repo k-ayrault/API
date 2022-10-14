@@ -44,6 +44,7 @@ def scrappMatchsLigue1():
     while num_journee <= nbre_journees:
         scrappJournee(num_journee)
         num_journee = num_journee + 1
+        logging.info("-------------------------------------------------------------------------------------------------")
 
 
 def scrappJournee(num_journee):
