@@ -50,4 +50,10 @@ class LogService
         $this->fileSystem->appendToFile($this->cheminFichierLog, $text."\n", true);
     }
 
+    function getCheminFichierLog(): string {
+        if ($this->fileSystem->exists($this->cheminFichierLog)) return $this->cheminFichierLog;
+
+        return '';
+    }
+
 }
