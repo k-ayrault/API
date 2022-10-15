@@ -36,7 +36,10 @@ def getClubsLigue1():
                     match = (re.search("/verein/", link))
                     name = href[href.find("/") + 1: href.find("/" + scrapp_func_global.transfermarkt_accueil_club)]
                     id = link[match.end():]
-                    id = id[:id.find("/")]
+                    id_find = id.find("/")
+                    if id_find == -1:
+                        id_find = len(id)
+                    id = id[:id_find]
                     clubs.append({"id": id, "link": link, "nom": name})
                 except Exception as e:
                     exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -76,10 +79,9 @@ def getInfoClub(club_to_scrapp):
                 row = subnavi.find_next_sibling("div", {"class": "row"})
 
                 try:
-                    # Récupération de la div contenant les informations du clubs
-                    box_info = row.find(text=re.compile(scrapp_func_global.transfermarkt_box_info_club_find))
-                    box_info = box_info.find_parent("div", {
-                        "class": "info-header"}).find_parent("div", {"class": "box"})
+                    # Récupération de la div contenant les informations du club
+                    box_info = row.find("h2", text=re.compile(scrapp_func_global.transfermarkt_box_info_club_find))
+                    box_info = box_info.find_parent("div", {"class": "box"}).find("div", {"class": "content"})
 
                     # Récupération du nom du club
                     try:
@@ -161,7 +163,8 @@ def getInfoClub(club_to_scrapp):
                                                                    scrapp_func_global.transfermarkt_accueil_club)
                         lien_club = lien_club[lien_club.index(scrapp_func_global.transfermarkt_base_url) + len(scrapp_func_global.transfermarkt_base_url): lien_club.index(
                             str(club_to_scrapp["id"])) + len(str(club_to_scrapp["id"]))]
-                        img = box_info.find("a", {"href": lien_club}).find("img")["src"]
+                        img_link = box_info.find("a", {"href": lien_club})
+                        img = img_link.find("img")["src"]
                         club["logo_principal"] = img
                     except Exception as e:
                         exc_type, exc_obj, exc_tb = sys.exc_info()
