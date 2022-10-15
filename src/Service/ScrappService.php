@@ -75,7 +75,9 @@ class ScrappService
             throw new ProcessFailedException($process);
         }
 
-        echo $process->getOutput();
+        $logFile = trim(preg_replace('/\s\s+/', ' ', $process->getOutput()));
+
+        return [$logFile];
     }
 
     public function saveClubScrapp()
@@ -218,8 +220,11 @@ class ScrappService
                 }
 
                 $this->clubRepository->add($club, true);
+                $logger->info("Le club {$club->getNom()} a correctement été ". $club->getId() ? "modifié" : "ajouté"." !");
             }
         }
+
+        return $logger->getCheminFichierLog();
     }
 
     public function saveJoueursScrapp()
@@ -339,7 +344,7 @@ class ScrappService
                     //  On regarde si le joueur n'a pas déjà un contrat qui correspond à celui qu'on traite
                     // çad: même date de début et même club
                     $searchContrat = $contrats->filter(function (Contrat $c) use ($contratArray) {
-                        return $c->getDebut() == new DateTime($contratArray["debut"]) && $c->getClub()->getIdTransfermarkt() === intval($contratArray["club"]);
+                        return $c->getDebut() == new DateTime($contratArray["debut"]) && (!$c->getClub() || $c->getClub()->getIdTransfermarkt() === intval($contratArray["club"]));
                     })->getValues();
                     //  On récupère le club lié au contrat qu'on est en train de traité
                     $club = $this->clubRepository->findOneBy(["id_transfermarkt" => intval($contratArray["club"])]);
@@ -356,6 +361,7 @@ class ScrappService
                         $contratCorrespondant->setFin(new DateTime($contratArray["fin"]) ?: null);
 
                         $contrat = $contratCorrespondant;
+                        $contrat->setClub($club);
 
                         //  S'il s'agit de son dernier contrat avant sa retraite, on indique que le joueur est retraité
                         if ($contratArray["retraite_fin"]) {
@@ -479,8 +485,11 @@ class ScrappService
                 }
 
                 $this->joueurRepository->add($joueur, true);
+                $logger->info("Le joueur {$joueur->getInformationsPersonnelles()->getNom()} {$joueur->getInformationsPersonnelles()->getPrenom()} a correctement été ". $joueur->getId() ? "modifié" : "ajouté"." !");
             }
         }
+
+        return $logger->getCheminFichierLog();
     }
 
 }
