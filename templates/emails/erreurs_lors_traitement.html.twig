@@ -1,0 +1,20 @@
+<h1>&#128552; Erreur sur la route {{ route }}</h1>
+
+<p>Une erreur sur la route {{ route | lower }} a été rencontré le {{ "now"|date("d-m-Y") }} :</p>
+
+<table>
+    <tr>
+        <th>📃 Fichier</th>
+        <td>{{ fichier }}</td>
+    </tr>
+    <tr>
+        <th>&#10147; Ligne</th>
+        <td>{{ ligne }}</td>
+    </tr>
+    <tr>
+        <th>&#9749; Message</th>
+        <td>{{ message }}</td>
+    </tr>
+</table>
+
+<p>Bon courage !</p>
