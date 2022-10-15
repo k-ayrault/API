@@ -210,8 +210,8 @@ def getInfoClub(club_to_scrapp):
                     f"du club {club_to_scrapp['nom']} ({club_to_scrapp['id']}) : {e} !")
     else:
         frameinfo = getframeinfo(currentframe())
-        logging.error(
-            f"[ERROR] {frameinfo.lineno} Le club {club_to_scrapp['nom']} est déjà récupéré !")
+        logging.info(
+            f"[INFO] {frameinfo.lineno} Le club {club_to_scrapp['nom']} est déjà récupéré !")
 
 
 def getInfoStadeClub(club):
@@ -1174,4 +1174,8 @@ def triNation(pays):
     if pays is not None:
         if pays == 'Angleterre':
             return 'Royaume-Uni'
+        elif pays == 'RD Congo':
+            return 'République Démocratique Du Congo'
+        elif pays == 'Russie':
+            return 'Fédération De Russie'
     return pays
