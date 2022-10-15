@@ -33,7 +33,7 @@ use Symfony\Component\Validator\Constraints\Image;
 class ScrappService
 {
 
-    private $python;
+    private $scrappJoueurs;
     private $clubsJson;
     private $joueursJson;
     private $joueurRepository;
@@ -44,17 +44,17 @@ class ScrappService
     private $posteRepository;
     private $imageStadeRepository;
     private $logoClubRepository;
-    private $logger;
+    private $logDir;
 
     public function __construct(JoueurRepository      $joueurRepository, ClubRepository $clubRepository,
                                 CouleurClubRepository $couleurClubRepository, PaysRepository $paysRepository,
                                 StadeRepository       $stadeRepository, PosteRepository $posteRepository,
-                                ImageStadeRepository $imageStadeRepository, LogoClubRepository $logoClubRepository,
-                                LoggerInterface       $logger)
+                                ImageStadeRepository $imageStadeRepository, LogoClubRepository $logoClubRepository)
     {
-        $this->python = "scrapp/scrapp.py";
-        $this->clubsJson = "scrapp/clubs.json";
-        $this->joueursJson = "scrapp/joueurs.json";
+        $this->scrappJoueurs = "scrapp/scrapp.py";
+        $this->clubsJson = "scrapp/donnees/clubs.json";
+        $this->joueursJson = "scrapp/donnees/joueurs.json";
+        $this->logDir = "scrapp/log";
         $this->joueurRepository = $joueurRepository;
         $this->clubRepository = $clubRepository;
         $this->couleurClubRepository = $couleurClubRepository;
@@ -63,24 +63,25 @@ class ScrappService
         $this->posteRepository = $posteRepository;
         $this->imageStadeRepository = $imageStadeRepository;
         $this->logoClubRepository = $logoClubRepository;
-        $this->logger = $logger;
     }
 
     public function scrapp()
     {
-        $process = new Process(['python', $this->python]);
+        $process = new Process(['python', $this->scrappJoueurs]);
         $process->setTimeout(3600);
         $process->run();
 
         if (!$process->isSuccessful()) {
             throw new ProcessFailedException($process);
         }
-        // Cela affichera "Hello World"
+
         echo $process->getOutput();
     }
 
     public function saveClubScrapp()
     {
+        $logger = new LogService($this->logDir, "save_clubs");
+
         //  Récupération des informations dans le json stockant les clubs récupérés via transfermarkt
         $clubsData = file_get_contents($this->clubsJson);
         $clubs = json_decode($clubsData, true);
@@ -122,7 +123,7 @@ class ScrappService
                         }
                     } else {
                         if ($couleur_hexa) {
-                            $this->logger->warning("[SCRAPP_TO_SAVE] Le code hexa {$couleur_hexa} dépasse les 6 caractères.");
+                            $logger->warning("Le code hexa {$couleur_hexa} dépasse les 6 caractères.");
                         }
                     }
                 }
@@ -149,13 +150,13 @@ class ScrappService
 
                 $pays = null;
                 if (!$clubArray["pays"]) {
-                    $this->logger->warning("[SCRAPP_TO_SAVE] Aucun pays pour le club : {$clubArray["nom"]}");
+                    $logger->warning("Aucun pays dans le json associé pour le club : {$clubArray["nom"]}");
                 } else {
                     //  Récupération du pays correspondant au string scrappé
                     $pays = $this->paysRepository->findOneBy(["nom_fr" => $clubArray["pays"]]);
                     //  Log afin de savoir quel club ne sera associé à aucun pays pour le faire à la main
-                    if (!$pays or !$pays instanceof Pays) {
-                        $this->logger->warning("[SCRAPP_TO_SAVE] Aucun pays n'a été associé dans la base au pays : '{$clubArray["pays"]}' pour le club : '{$clubArray["nom"]}'");
+                    if (!$pays || !$pays instanceof Pays) {
+                        $logger->warning("Aucun pays n'a été associé dans la base au pays : '{$clubArray["pays"]}' pour le club : '{$clubArray["nom"]}'");
                     } else {
                         $club->setPays($pays);
                     }
@@ -223,6 +224,8 @@ class ScrappService
 
     public function saveJoueursScrapp()
     {
+        $logger = new LogService($this->logDir, "save_joueurs");
+
         //  Récupération des informations dans le json stockant les joueurs récupérés via transfermarkt
         $joueursJson = file_get_contents($this->joueursJson);
         $joueurs = json_decode($joueursJson, true);
@@ -252,7 +255,7 @@ class ScrappService
                         $pays = $this->paysRepository->findOneBy(["nom_fr" => $nationnalite]);
                         //  Log afin de savoir quel club ne sera associé à aucun pays pour le faire à la main
                         if (!$pays or !$pays instanceof Pays) {
-                            $this->logger->warning("[SCRAPP_TO_SAVE] Aucun pays n'a été associé dans la base au pays : '{$nationnalite}' pour le joueur : '{$informationsPerso->getNomComplet()}'");
+                            $logger->warning("Aucun pays n'a été associé dans la base au pays : '{$nationnalite}' pour le joueur : '{$informationsPerso->getNomComplet()}'");
                         } else {
                             $informationsPerso->addNationnalite($pays);
                         }
@@ -294,7 +297,7 @@ class ScrappService
                     }
                     //  Si le poste n'existe pas dans la base on le log afin de permettre de le créer si nécessaire
                     else {
-                        $this->logger->warning("[SCRAPP_TO_SAVE] Aucun poste ne correspond à l'id transfermarkt '{$postePrinc}' dans la base de donnée");
+                        $logger->warning("Aucun poste ne correspond à l'id transfermarkt '{$postePrinc}' dans la base de donnée");
                     }
                 }
 
@@ -327,7 +330,7 @@ class ScrappService
                     }
                     //  Si le poste n'existe pas dans la base on le log afin de permettre de le créer si nécessaire
                     else {
-                        $this->logger->warning("[SCRAPP_TO_SAVE] Aucun poste ne correspond à l'id transfermarkt '{$posteSec}' dans la base de donnée");
+                        $logger->warning("Aucun poste ne correspond à l'id transfermarkt '{$posteSec}' dans la base de donnée");
                     }
                 }
 
@@ -341,8 +344,13 @@ class ScrappService
                     //  On récupère le club lié au contrat qu'on est en train de traité
                     $club = $this->clubRepository->findOneBy(["id_transfermarkt" => intval($contratArray["club"])]);
                     $contrat = null;
-                    //  Si un contrat correspond et que le club existe dans la base
-                    if (!empty($searchContrat) && $club && $club instanceof Club) {
+
+                    if (!$club || !$club instanceof Club) {
+                        $club = null;
+                    }
+
+                    //  Si un contrat correspond, modification de ce dernier
+                    if (!empty($searchContrat)) {
                         $contratCorrespondant = $searchContrat[0];
                         //  On modifie la date de fin (qui peut avoir été modifié via un transfert ou une prolongation)
                         $contratCorrespondant->setFin(new DateTime($contratArray["fin"]) ?: null);
@@ -369,13 +377,13 @@ class ScrappService
                             } elseif ($contratArray["pret"]) {
                                 $joueur->removeContrat($contrat);
                                 $contrat = new Pret();
-                                $contrat->setClub($club);
+                                if ($club) $contrat->setClub($club);
                                 $contrat->setDebut(new DateTime($contratArray["debut"]) ?: null);
                                 $contrat->setFin(new DateTime($contratArray["fin"]) ?: null);
                             } elseif ($contratArray["formation"]) {
                                 $joueur->removeContrat($contrat);
                                 $contrat = new Contrat();
-                                $contrat->setClub($club);
+                                if ($club) $contrat->setClub($club);
                                 $contrat->setDebut(new DateTime($contratArray["debut"]) ?: null);
                                 $contrat->setFin(new DateTime($contratArray["fin"]) ?: null);
                             }
@@ -384,7 +392,7 @@ class ScrappService
                             if ($contratArray["libre"]) {
                                 $joueur->removeContrat($contrat);
                                 $contrat = new Transfert();
-                                $contrat->setClub($club);
+                                if ($club) $contrat->setClub($club);
                                 $contrat->setDebut(new DateTime($contratArray["debut"]) ?: null);
                                 $contrat->setFin(new DateTime($contratArray["fin"]) ?: null);
                                 $contrat->setLibre(true);
@@ -392,7 +400,7 @@ class ScrappService
                             } elseif ($contratArray["transfert"]) {
                                 $joueur->removeContrat($contrat);
                                 $contrat = new Transfert();
-                                $contrat->setClub($club);
+                                if ($club) $contrat->setClub($club);
                                 $contrat->setDebut(new DateTime($contratArray["debut"]) ?: null);
                                 $contrat->setFin(new DateTime($contratArray["fin"]) ?: null);
                                 $contrat->setLibre(false);
@@ -400,7 +408,7 @@ class ScrappService
                             } elseif ($contratArray["formation"]) {
                                 $joueur->removeContrat($contrat);
                                 $contrat = new Contrat();
-                                $contrat->setClub($club);
+                                if ($club) $contrat->setClub($club);
                                 $contrat->setDebut(new DateTime($contratArray["debut"]) ?: null);
                                 $contrat->setFin(new DateTime($contratArray["fin"]) ?: null);
                             }
@@ -409,7 +417,7 @@ class ScrappService
                             if ($contratArray["libre"]) {
                                 $joueur->removeContrat($contrat);
                                 $contrat = new Transfert();
-                                $contrat->setClub($club);
+                                if ($club) $contrat->setClub($club);
                                 $contrat->setDebut(new DateTime($contratArray["debut"]) ?: null);
                                 $contrat->setFin(new DateTime($contratArray["fin"]) ?: null);
                                 $contrat->setLibre(true);
@@ -417,7 +425,7 @@ class ScrappService
                             } elseif ($contratArray["transfert"]) {
                                 $joueur->removeContrat($contrat);
                                 $contrat = new Transfert();
-                                $contrat->setClub($club);
+                                if ($club) $contrat->setClub($club);
                                 $contrat->setDebut(new DateTime($contratArray["debut"]) ?: null);
                                 $contrat->setFin(new DateTime($contratArray["fin"]) ?: null);
                                 $contrat->setLibre(false);
@@ -425,44 +433,44 @@ class ScrappService
                             } elseif ($contratArray["pret"]) {
                                 $joueur->removeContrat($contrat);
                                 $contrat = new Pret();
-                                $contrat->setClub($club);
+                                if ($club) $contrat->setClub($club);
                                 $contrat->setDebut(new DateTime($contratArray["debut"]) ?: null);
                                 $contrat->setFin(new DateTime($contratArray["fin"]) ?: null);
                             }
                         }
                     }
-                    //  Sinon (donc nouveau contrat), si le club de ce contrat existe
-                    elseif ($club && $club instanceof Club) {
+                    //  Sinon donc nouveau contrat
+                    else {
                         //  Création du contrat selon le type de mouvement
                         if ($contratArray["libre"]) {
                             $contrat = new Transfert();
-                            $contrat->setClub($club);
+                            if ($club) $contrat->setClub($club);
                             $contrat->setDebut(new DateTime($contratArray["debut"]) ?: null);
                             $contrat->setFin(new DateTime($contratArray["fin"]) ?: null);
                             $contrat->setLibre(true);
                             $contrat->setMontant(null);
                         } elseif ($contratArray["transfert"]) {
                             $contrat = new Transfert();
-                            $contrat->setClub($club);
+                            if ($club) $contrat->setClub($club);
                             $contrat->setDebut(new DateTime($contratArray["debut"]) ?: null);
                             $contrat->setFin(new DateTime($contratArray["fin"]) ?: null);
                             $contrat->setLibre(false);
                             $contrat->setMontant(intval($contratArray["montant"] ?: null));
                         } elseif ($contratArray["pret"]) {
                             $contrat = new Pret();
-                            $contrat->setClub($club);
+                            if ($club) $contrat->setClub($club);
                             $contrat->setDebut(new DateTime($contratArray["debut"]) ?: null);
                             $contrat->setFin(new DateTime($contratArray["fin"]) ?: null);
                         } elseif ($contratArray["formation"]) {
                             $contrat = new Contrat();
-                            $contrat->setClub($club);
+                            if ($club) $contrat->setClub($club);
                             $contrat->setDebut(new DateTime($contratArray["debut"]) ?: null);
                             $contrat->setFin(new DateTime($contratArray["fin"]) ?: null);
                         }
                     }
-                    //  Sinon, cela veut dire que le club pour ce contrat n'est pas enregistré dans la base, donc log pour l'indiquer
-                    else {
-                        $this->logger->warning("[SCRAPP_TO_SAVE] Aucun club ne correspond à l'id transfermarkt '{$contratArray["club"]}' dans la base de donnée pour le contrat du joueur : '{$joueur->getInformationsPersonnelles()->getNomComplet()}' pour son contrat allant du '{$contratArray["debut"]}' au {$contratArray["fin"]}'");
+                    //  Si le club pour ce contrat n'est pas enregistré dans la base, donc log pour l'indiquer
+                    if(!$club) {
+                        $logger->warning("Aucun club ne correspond à l'id transfermarkt '{$contratArray["club"]}' dans la base de donnée pour le contrat du joueur : '{$joueur->getInformationsPersonnelles()->getNomComplet()}' pour son contrat allant du '{$contratArray["debut"]}' au {$contratArray["fin"]}'");
                     }
 
                     if ($contrat && !$contrat->getId()) {
