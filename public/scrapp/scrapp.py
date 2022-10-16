@@ -55,7 +55,7 @@ for club in clubs:
     logging.info(f"[INFO] {club['nom']} : Terminé")
     logging.info("-------------------------------------------------------------------------------------------------")
 
-date_fin = datetime.now().strftime("d/m/Y H:M:S")
+date_fin = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
 logging.info("--INFORMATIONS SCRAPP-----------------------------------------------------------------------------------")
 logging.info(f"Début : {date_debut}; Fin : {date_fin}")
