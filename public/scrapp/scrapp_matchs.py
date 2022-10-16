@@ -13,13 +13,15 @@ from inspect import currentframe, getframeinfo
 import sys, os
 
 date_str_filename = datetime.now().strftime("%d_%m_%Y_%H_%M_%f")
-log_filename = "log_scrapp_matchs_" + date_str_filename
+log_filename = f"log_scrapp_matchs_{date_str_filename}.txt"
 
-log_file_path = Path("log/" + log_filename)
+date_debut = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+
+log_file_path = Path("scrapp/log/" + log_filename)
 
 logging.basicConfig(filename=log_file_path, level=logging.INFO, encoding="UTF-8")
 
-json_matchs = Path("donnees/matchs.json")
+json_matchs = Path("scrapp/donnees/matchs.json")
 
 lien_calendrier = 'https://www.ligue1.com/fixtures-results'
 nbre_journees = 38
@@ -905,3 +907,10 @@ def scrappNumPasseur(soup, evenements, match):
 
 
 scrappMatchsLigue1()
+
+date_fin = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+
+logging.info("--INFORMATIONS SCRAPP-----------------------------------------------------------------------------------")
+logging.info(f"Début : {date_debut}; Fin : {date_fin}")
+
+print(log_file_path.absolute())
