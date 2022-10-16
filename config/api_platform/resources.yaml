@@ -19,16 +19,27 @@ resources:
       scrapp:
         method: POST
         path: /club/scrapp
-        controller: App\Controller\Administration\ScrappController::scrappClubs
+        controller: App\Controller\Administration\ScrappController::scrappJoueursEtClubs
         validate: false
         normalization_context:
           groups: ['read.Club']
       save_scrapp:
         method: POST
         path: /club/save_scrapp
-        controller: App\Controller\Administration\ScrappController::saveScrapp
+        controller: App\Controller\Administration\ScrappController::saveScrappJoueursEtClubs
         validate: false
         normalization_context:
           groups: ['read.Club']
+    itemOperations:
+      get: ~
+  App\Entity\RencontreLigue1:
+    collectionOperations:
+      scrapp:
+        method: POST
+        path: /rencontre_ligue1/scrapp
+        controller: App\Controller\Administration\ScrappController::scrappMatchsLigue1
+        validate: false
+        normalization_context:
+          groups: ['read.RencontreLigue1']
     itemOperations:
       get: ~

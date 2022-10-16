@@ -23,10 +23,10 @@ class ScrappController
         $this->cheminPublic = $kernel->getProjectDir() . "/public/";
     }
 
-    public function scrappClubs(Request $request)
+    public function scrappJoueursEtClubs(Request $request)
     {
         try {
-            $logFichiers = $this->scrappService->scrapp();
+            $logFichiers = $this->scrappService->scrappJoueursEtClubs();
             $this->mailerService->sendLog("Scrapping des données des joueurs et clubs", $logFichiers);
             return new JsonResponse(["pass" => true]);
         } catch (\Exception $e) {
@@ -36,7 +36,7 @@ class ScrappController
         }
     }
 
-    public function saveScrapp(Request $request)
+    public function saveScrappJoueursEtClubs(Request $request)
     {
         try {
             $logFichiers = [];
@@ -51,6 +51,18 @@ class ScrappController
 
             $this->mailerService->sendLog("Sauvegarde des données scrappées pour les clubs et les joueurs", $logFichiers);
 
+            return new JsonResponse(["pass" => true]);
+        } catch (\Exception $e) {
+            $route = $request->attributes->get("_route");
+            $this->mailerService->sendErreurRoute($route, $e);
+            return new JsonResponse(["pass" => false, "message" => $e->getMessage()]);
+        }
+    }
+
+    public function scrappMatchsLigue1(Request $request) {
+        try {
+            $logFichiers = $this->scrappService->scrappMatchsLigue1();
+            $this->mailerService->sendLog("Scrapping des données des matchs de ligue 1", $logFichiers);
             return new JsonResponse(["pass" => true]);
         } catch (\Exception $e) {
             $route = $request->attributes->get("_route");

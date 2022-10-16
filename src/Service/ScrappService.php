@@ -34,8 +34,10 @@ class ScrappService
 {
 
     private $scrappJoueurs;
+    private $scrappMatchsLigue1;
     private $clubsJson;
     private $joueursJson;
+    private $matchsLigue1Json;
     private $joueurRepository;
     private $clubRepository;
     private $couleurClubRepository;
@@ -52,8 +54,10 @@ class ScrappService
                                 ImageStadeRepository $imageStadeRepository, LogoClubRepository $logoClubRepository)
     {
         $this->scrappJoueurs = "scrapp/scrapp.py";
+        $this->scrappMatchsLigue1 = "scrapp/scrapp_matchs.py";
         $this->clubsJson = "scrapp/donnees/clubs.json";
         $this->joueursJson = "scrapp/donnees/joueurs.json";
+        $this->matchsLigue1Json = "scrapp/donnees/matchs.json";
         $this->logDir = "scrapp/log";
         $this->joueurRepository = $joueurRepository;
         $this->clubRepository = $clubRepository;
@@ -65,7 +69,7 @@ class ScrappService
         $this->logoClubRepository = $logoClubRepository;
     }
 
-    public function scrapp()
+    public function scrappJoueursEtClubs()
     {
         $process = new Process(['python', $this->scrappJoueurs]);
         $process->setTimeout(3600);
@@ -490,6 +494,20 @@ class ScrappService
         }
 
         return $logger->getCheminFichierLog();
+    }
+
+    public function scrappMatchsLigue1() {
+        $process = new Process(['python', $this->scrappMatchsLigue1]);
+        $process->setTimeout(3600);
+        $process->run();
+
+        if (!$process->isSuccessful()) {
+            throw new ProcessFailedException($process);
+        }
+
+        $logFile = trim(preg_replace('/\s\s+/', ' ', $process->getOutput()));
+
+        return [$logFile];
     }
 
 }
