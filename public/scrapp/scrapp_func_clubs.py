@@ -6,49 +6,83 @@ import re
 from bs4 import BeautifulSoup
 from datetime import datetime
 import validators
-import scrapp_func_global
 import copy
 import sys
 from inspect import currentframe, getframeinfo
 
+from scrapp_func_global import *
+
 # TODO vérifier date de fin contrat club qui prête actuellement un joueur
 
-def getIdClubsPresent():
-    for club in scrapp_func_global.all_clubs:
-        scrapp_func_global.all_clubs_id.append(club["id_transfermarkt"])
-
-
+"""
+    Fonction permettant de récupérer les clubs présent en Ligue 1 cette saison.
+    Entrée :
+    Sortie :
+        - clubs, tableau contenant les clubs de Ligue 1 avec leur id transfermarkt ("id"), leur lien transfermarkt ("lien") ainsi que leur nom ("nom")
+"""
 def getClubsLigue1():
-    result = requests.get(scrapp_func_global.transfermarkt_base_url + scrapp_func_global.link_classement_ligue_1,
-                          headers=scrapp_func_global.headers)
+    # Lien vers la page TransferMarkt du classement de Ligue 1.
+    url_classement_transfermarkt_ligue_1 = transfermarkt_base_url + link_classement_ligue_1
+
+    # Résultat de la requête HTTP vers la page TransferMarkt du classement de Ligue 1.
+    result = requests.get(url=url_classement_transfermarkt_ligue_1,
+                          headers=headers)
+
+    # Tableau allant contenir les clubs de Ligue 1.
     clubs = []
+
+    # Si on a réussi à accéder à la page
     if (result.ok):
+        # Transformation du code HTML de la page en objet BeautifulSoup
         soup = BeautifulSoup(result.text, "html.parser")
+
         try:
+            
+            # Table HTML correspondant au classement
             classement = soup.find("div", {"id": "yw1"}).find("table")
-            tds = classement.find("tbody").findAll("tr")
-            for td in tds:
+            
+            # Tableau des lignes du classement correspondant aux différents clubs de ligue 1
+            clubs_tds = classement.find("tbody").findAll("tr")
+
+            # On traite chaque club
+            for club_td in clubs_tds:
+                
                 try:
-                    href = td.find("a")['href']
-                    link = scrapp_func_global.transfermarkt_base_url + href
-                    link = link.replace(scrapp_func_global.transfermarkt_accueil_club,
-                                        scrapp_func_global.transfermarkt_url_replace)
-                    match = (re.search("/verein/", link))
-                    name = href[href.find("/") + 1: href.find("/" + scrapp_func_global.transfermarkt_accueil_club)]
-                    id = link[match.end():]
-                    id_find = id.find("/")
-                    if id_find == -1:
-                        id_find = len(id)
-                    id = id[:id_find]
-                    clubs.append({"id": id, "link": link, "nom": name})
+                    
+                    # Récupération du href correspondant au lien vers la page TransferMarkt du club
+                    href = club_td.find("a")['href']
+                    # Création du lien complet vers la page TransferMarkt du club à
+                    lien_club = transfermarkt_base_url + href
+                    # Formattage du lien, afin de pouvoir accéder à n'importe quel page d'information lié au club en remplaçant 'transfermarkt_url_replace' par le mot clé correspondant à l'information que l'on souhaite
+                    lien_club = lien_club.replace(transfermarkt_accueil_club,
+                                        transfermarkt_url_replace)
+
+                    # Récupération du nom du club présent dans le lien
+                    nom_club = href[href.find("/") + 1: href.find("/" + transfermarkt_accueil_club)]
+
+                    # Récupération de la fin du lien contenant l'id
+                    fin_lien_club = lien_club[lien_club.find("/verein/") + len("/verein/"):]
+                    
+                    # Récupération de l'index dans 'fin_lien_club' correspondant au caractère suivant l'id du club
+                    char_apres_id = fin_lien_club.find("/") if fin_lien_club.find("/") else len(fin_lien_club)
+                    id_club = fin_lien_club[:char_apres_id]
+
+                    # Création du club avec les informations récupérées
+                    club = {"id": id_club, "lien": lien_club, "nom": nom_club}
+                    
+                    # Ajout du club récupéré dans le tableau des clubs de Ligue 1
+                    clubs.append(club)
+                
                 except Exception as e:
                     exc_type, exc_obj, exc_tb = sys.exc_info()
                     logging.error(
                         f"[ERROR] {exc_tb.tb_lineno} Problème au niveau de la récupération de l'id, nom et lien du club : {e} !")
+        
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             logging.error(
                 f"[ERROR] {exc_tb.tb_lineno} Le classement de la ligue 1 n'a pu être récupéré dans le DOM : {e} !")
+    
     return clubs
 
 
@@ -56,7 +90,7 @@ def getInfoClub(club_to_scrapp):
     id_transfermarkt = club_to_scrapp["id"]
     if id_transfermarkt not in scrapp_func_global.all_clubs_id:
         # "Création" du lien du club où sont les infos de ce dernier
-        link = club_to_scrapp["link"].replace(scrapp_func_global.transfermarkt_url_replace,
+        link = club_to_scrapp["lien"].replace(scrapp_func_global.transfermarkt_url_replace,
                                               scrapp_func_global.transfermarkt_info_club)
         result = requests.get(link, headers=scrapp_func_global.headers)
         club = {
@@ -159,7 +193,7 @@ def getInfoClub(club_to_scrapp):
 
                     # Récupération du logo actuel du club
                     try:
-                        lien_club = club_to_scrapp["link"].replace(scrapp_func_global.transfermarkt_url_replace,
+                        lien_club = club_to_scrapp["lien"].replace(scrapp_func_global.transfermarkt_url_replace,
                                                                    scrapp_func_global.transfermarkt_accueil_club)
                         lien_club = lien_club[lien_club.index(scrapp_func_global.transfermarkt_base_url) + len(scrapp_func_global.transfermarkt_base_url): lien_club.index(
                             str(club_to_scrapp["id"])) + len(str(club_to_scrapp["id"]))]
@@ -222,7 +256,7 @@ def getInfoStadeClub(club):
         'adresse': '',
         'images': []
     }
-    link = club["link"].replace(scrapp_func_global.transfermarkt_url_replace,
+    link = club["lien"].replace(scrapp_func_global.transfermarkt_url_replace,
                                 scrapp_func_global.transfermarkt_info_stade)
     result = requests.get(link, headers=scrapp_func_global.headers)
     if result.ok:
@@ -328,7 +362,7 @@ def getInfoStadeClub(club):
 def getJoueursClub(club_to_scrapp):
     joueurs = []
     # "Création" du lien du club où sont les infos de ce dernier
-    link = club_to_scrapp["link"].replace(scrapp_func_global.transfermarkt_url_replace,
+    link = club_to_scrapp["lien"].replace(scrapp_func_global.transfermarkt_url_replace,
                                           scrapp_func_global.transfermarkt_joueurs_club)
     result = requests.get(link, headers=scrapp_func_global.headers)
     if result.ok:
@@ -343,7 +377,7 @@ def getJoueursClub(club_to_scrapp):
                                         scrapp_func_global.transfermarkt_url_replace)
                     match = (re.search("/spieler/", link))
                     id = link[match.end():]
-                    joueur = {"id": id, "link": scrapp_func_global.transfermarkt_base_url + link}
+                    joueur = {"id": id, "lien": scrapp_func_global.transfermarkt_base_url + link}
                     joueurs.append(joueur)
                     getInfoJoueur(joueur)
                 except Exception as e:
@@ -363,7 +397,7 @@ def getJoueursClub(club_to_scrapp):
 def getInfoJoueur(joueur_to_scrapp):
     id_transfermarkt = joueur_to_scrapp["id"]
     # "Création" du lien du club où sont les infos de ce dernier
-    link = joueur_to_scrapp["link"].replace(scrapp_func_global.transfermarkt_url_replace,
+    link = joueur_to_scrapp["lien"].replace(scrapp_func_global.transfermarkt_url_replace,
                                             scrapp_func_global.transfermarkt_info_joueur)
     result = requests.get(link, headers=scrapp_func_global.headers)
     if result.ok:
@@ -373,7 +407,7 @@ def getInfoJoueur(joueur_to_scrapp):
         if id_transfermarkt not in scrapp_func_global.all_joueurs_id:
             joueur = {
                 "id_transfermarkt": joueur_to_scrapp["id"],
-                "lien_transfermarkt": joueur_to_scrapp["link"],
+                "lien_transfermarkt": joueur_to_scrapp["lien"],
                 "nom": '',
                 "prenom": '',
                 "nom_complet": '',
@@ -718,7 +752,7 @@ def getInfoJoueur(joueur_to_scrapp):
 
 def getContratsJoueur(joueur_to_scrapp, date_fin_contrat):
     # "Création" du lien du joueur où sont les transfert de ce dernier
-    link = joueur_to_scrapp["link"].replace(scrapp_func_global.transfermarkt_url_replace,
+    link = joueur_to_scrapp["lien"].replace(scrapp_func_global.transfermarkt_url_replace,
                                             scrapp_func_global.transfermarkt_transferts_joueur)
     result = requests.get(link, headers=scrapp_func_global.headers)
     if result.ok:
@@ -843,7 +877,7 @@ def majContratsJoueur(joueur, joueur_to_scrapp, date_fin_contrat):
     contrats.sort(key=lambda x: x["fin"], reverse=True)
     contrat_actuel = contrats[0]
     # "Création" du lien du joueur où sont les transfert de ce dernier
-    link = joueur_to_scrapp["link"].replace(scrapp_func_global.transfermarkt_url_replace,
+    link = joueur_to_scrapp["lien"].replace(scrapp_func_global.transfermarkt_url_replace,
                                             scrapp_func_global.transfermarkt_transferts_joueur)
     result = requests.get(link, headers=scrapp_func_global.headers)
     if result.ok:
@@ -1087,7 +1121,7 @@ def getClubEntrantLigne(ligne):
             club["id"] = id
             link_club = link_club.replace(scrapp_func_global.transfermarkt_transferts_joueur,
                                               scrapp_func_global.transfermarkt_url_replace)
-            getInfoClub({"id": id, "nom": club["nom"], "link": scrapp_func_global.transfermarkt_base_url + link_club})
+            getInfoClub({"id": id, "nom": club["nom"], "lien": scrapp_func_global.transfermarkt_base_url + link_club})
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         logging.error(
@@ -1113,7 +1147,7 @@ def getClubPartantLigne(ligne):
                 club["id"] = id
                 link_club = link_club.replace(scrapp_func_global.transfermarkt_transferts_joueur,
                                               scrapp_func_global.transfermarkt_url_replace)
-                getInfoClub({"id": id, "nom": club["nom"], "link": scrapp_func_global.transfermarkt_base_url + link_club})
+                getInfoClub({"id": id, "nom": club["nom"], "lien": scrapp_func_global.transfermarkt_base_url + link_club})
         return club
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
