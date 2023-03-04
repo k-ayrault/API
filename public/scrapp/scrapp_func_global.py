@@ -40,8 +40,8 @@ transfermarkt_fin_contrat_find = 'Contrat jusqu’à'
 class_css_position_principale_start = 'position__primary--'
 class_css_position_secondaire_start = 'position__secondary--'
 
-all_clubs = []
-all_clubs_id = []
+clubs_scrapp = []
+id_transfermarkt_clubs_deja_scrapp = []
 all_joueurs = []
 all_joueurs_id = []
 

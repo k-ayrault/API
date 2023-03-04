@@ -86,15 +86,27 @@ def getClubsLigue1():
     return clubs
 
 
-def getInfoClub(club_to_scrapp):
-    id_transfermarkt = club_to_scrapp["id"]
-    if id_transfermarkt not in scrapp_func_global.all_clubs_id:
+"""
+    Fonction permettant de scrapper divers informations du club en entrée de la fonction, si on ne les a pas déjà scrappées dans le passé
+    Entrée:
+        - club_a_scrapp, objet contenant les informations "d'identification" TransferMarkt du club dont on veut scrapp ("id", "lien" et "nom")
+    Sortie:
+        - club, informations scrapp du club
+"""
+def getInfoClub(club_transfermarkt):
+    # Récupération de l'identifiant du club dont on veut scrapp ces informations
+    id_club_transfermarkt = club_transfermarkt["id"]
+    # On vérifie si les informations du club n'ont pas déjà été scrapp
+    if id_club_transfermarkt not in id_transfermarkt_clubs_deja_scrapp:
         # "Création" du lien du club où sont les infos de ce dernier
-        link = club_to_scrapp["lien"].replace(scrapp_func_global.transfermarkt_url_replace,
-                                              scrapp_func_global.transfermarkt_info_club)
-        result = requests.get(link, headers=scrapp_func_global.headers)
+        link = club_transfermarkt["lien"].replace(transfermarkt_url_replace,
+                                              transfermarkt_info_club)
+        # Résultat de la requête HTTP vers la page TransferMarkt des informations du club
+        result = requests.get(link, headers=headers)
+
+        # Initialisation de l'objet allant contenir les informations du club
         club = {
-            "id_transfermarkt": club_to_scrapp["id"],
+            "id_transfermarkt": id_club_transfermarkt,
             "nom": '',
             "pays": '',
             "site": '',
@@ -104,118 +116,151 @@ def getInfoClub(club_to_scrapp):
             "logos": [],
             "stade": {}
         }
+
+        # Vérification que la requête HTTP s'est bien passée
         if result.ok:
+            # Transformation du code HTML de la page en objet BeautifulSou^p
             soup = BeautifulSoup(result.text, "html.parser")
             try:
                 # Récupération du bandeau bleu de navigation du club
                 subnavi = soup.find("div", {"id": "subnavi"})
+
                 # Récupération de la div contenant toutes les informations que l'on souhaite
                 row = subnavi.find_next_sibling("div", {"class": "row"})
-
+                
+                # Récupération des informations générales du club
                 try:
                     # Récupération de la div contenant les informations du club
-                    box_info = row.find("h2", text=re.compile(scrapp_func_global.transfermarkt_box_info_club_find))
-                    box_info = box_info.find_parent("div", {"class": "box"}).find("div", {"class": "content"})
+                    h2_box_info = row.find("h2", text=re.compile(transfermarkt_box_info_club_find))
+                    box_info = h2_box_info.find_parent("div", {"class": "box"}).find("div", {"class": "content"})
 
                     # Récupération du nom du club
                     try:
-                        nom_club = box_info.find("th", text=re.compile(scrapp_func_global.transfermarkt_nom_club_find))
-                        nom_club = nom_club.find_parent().find("td").text
+                        # Récupération de la ligne contenant le nom du club
+                        ligne_nom_club = box_info.find("th", text=re.compile(transfermarkt_nom_club_find)).find_parent("tr")
+                        # Récupération du nom du club
+                        nom_club = ligne_nom_club.find("td").text.strip()
                         club["nom"] = nom_club
                     except Exception as e:
                         exc_type, exc_obj, exc_tb = sys.exc_info()
                         logging.error(
                             f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération du nom "
-                            f"du club {club_to_scrapp['nom']} ({club_to_scrapp['id']}) dans le DOM : {e} !")
+                            f"du club {club_transfermarkt['nom']} ({club_transfermarkt['id']}) dans le DOM : {e} !")
 
                     # Récupération du pays où le club est
                     try:
-                        pays_club = box_info.find("th",
-                                                  text=re.compile(scrapp_func_global.transfermarkt_adresse_club_find))
+                        # Récupération de la ligne où l'adresse du club est
+                        ligne_adresse_club = box_info.find("th",
+                                                  text=re.compile(transfermarkt_adresse_club_find)).find_parent("tr")
+                        # Récupération de la ligne où le pays est, en déduisant qu'il s'agit de la troisième ligne de l'adresse donc deux tr plus loin que le premier de l'adresse
+                        ligne_pays_club = ligne_adresse_club.find_next_sibling().find_next_sibling()
                         # On déduit que le pays du club est au troisième tr de l'adresse
-                        pays_club = pays_club.find_parent().find_next_sibling().find_next_sibling().find("td").text
+                        pays_club = ligne_pays_club.find("td").text
+
                         club["pays"] = triNation(pays_club)
                     except Exception as e:
                         exc_type, exc_obj, exc_tb = sys.exc_info()
                         logging.error(
                             f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération du pays "
-                            f"du club {club_to_scrapp['nom']} ({club_to_scrapp['id']}) dans le DOM : {e} !")
+                            f"du club {club_transfermarkt['nom']} ({club_transfermarkt['id']}) dans le DOM : {e} !")
 
                     # Récupération du site du club
                     try:
-                        site_club = box_info.find("th",
-                                                  text=re.compile(scrapp_func_global.transfermarkt_site_club_find))
+                        # Récupération de la ligne où est présent le site du club
+                        ligne_site_club = box_info.find("th",
+                                                  text=re.compile(transfermarkt_site_club_find)).find_parent("tr")
+                        # Récupération du lien vers le site du club
+                        site_club = ligne_site_club.find("a")["href"]
 
-                        site_club = site_club.find_parent().find("a")["href"]
                         club["site"] = site_club
                     except Exception as e:
                         exc_type, exc_obj, exc_tb = sys.exc_info()
                         logging.error(
                             f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération du site "
-                            f"du club {club_to_scrapp['nom']} ({club_to_scrapp['id']}) dans le DOM : {e} !")
+                            f"du club {club_transfermarkt['nom']} ({club_transfermarkt['id']}) dans le DOM : {e} !")
 
                     # Récupération de la date de création du club
                     try:
-                        creation_club = box_info.find("th",
-                                                      text=re.compile(scrapp_func_global.transfermarkt_annee_club_find))
-                        creation_club = creation_club.find_parent().find("td").text
-                        creation_club = datetime.strptime(creation_club.strip(), '%d %b %Y')
-                        club["creation"] = creation_club.date().isoformat()
+                        # Récupération de la ligne contenant la date de création du club
+                        ligne_creation_club = box_info.find("th",
+                                                      text=re.compile(transfermarkt_annee_club_find)).find_parent("tr")
+                        # Récupération de la chaîne de caractère de la création du club
+                        str_creation_club = ligne_creation_club.find("td").text
+                        # Format de la date de création
+                        format_datetime_creation_club = "%d %b %Y"
+                        # Création de la datetime correspondant à la date de création du club
+                        datetime_creation_club = datetime.strptime(str_creation_club.strip(), format_datetime_creation_club)
+                        # Date de la création du club au format ISO 8601 
+                        iso_date_creation_club = datetime_creation_club.date().isoformat()
+                        
+                        club["creation"] = iso_date_creation_club
                     except Exception as e:
                         exc_type, exc_obj, exc_tb = sys.exc_info()
                         logging.error(
                             f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération de de la "
-                            f"date de création du club {club_to_scrapp['nom']} ({club_to_scrapp['id']}) dans le DOM : {e} !")
+                            f"date de création du club {club_transfermarkt['nom']} ({club_transfermarkt['id']}) dans le DOM : {e} !")
 
                     # Récupération des couleurs du club
                     couleurs_club = []
                     try:
-                        couleurs = box_info.find("th",
-                                                 text=re.compile(scrapp_func_global.transfermarkt_couleurs_club_find))
-                        couleurs = couleurs.find_parent().find("td").find("p")
-                        for couleur in couleurs.findAll():
+                        # Récupération de la ligne contenant les couleurs du clubs
+                        ligne_couleurs_clubs = box_info.find("th",
+                                                 text=re.compile(transfermarkt_couleurs_club_find)).find_parent("tr")
+                        # Récupération des "blocs" ayant comme background-color, les couleurs du clubs
+                        blocs_couleurs_club = ligne_couleurs_clubs.find("td").find("p").find_all("span")
+
+                        # Traitement de chaque bloc pour récupérer la couleur du club
+                        for couleur in blocs_couleurs_club:
                             try:
-                                match = (re.search("background-color:", couleur["style"]))
-                                couleur = couleur["style"][match.end():-1]
+                                # Récupération de l'index où est normalement la couleur 
+                                index_couleur_style = (re.search("background-color:", couleur["style"])).end()
+                                # Récupération de la couleur du bloc 
+                                couleur = couleur["style"][index_couleur_style:-1]
+                                # On ajoute la couleur à celles du club si cette dernière existe
                                 if couleur != '':
                                     couleurs_club.append(couleur)
-                                    club["couleurs"] = couleurs_club
                             except Exception as e:
                                 exc_type, exc_obj, exc_tb = sys.exc_info()
                                 logging.error(
                                     f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération d'une couleur "
-                                    f"du club {club_to_scrapp['nom']} ({club_to_scrapp['id']}) dans le DOM : {e} !")
+                                    f"du club {club_transfermarkt['nom']} ({club_transfermarkt['id']}) dans le DOM : {e} !")
+                        club["couleurs"] = couleurs_club
                     except Exception as e:
                         exc_type, exc_obj, exc_tb = sys.exc_info()
                         logging.error(
                             f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération des couleurs  "
-                            f"du club {club_to_scrapp['nom']} ({club_to_scrapp['id']}) dans le DOM : {e} !")
+                            f"du club {club_transfermarkt['nom']} ({club_transfermarkt['id']}) dans le DOM : {e} !")
 
                     # Récupération du logo actuel du club
                     try:
-                        lien_club = club_to_scrapp["lien"].replace(scrapp_func_global.transfermarkt_url_replace,
-                                                                   scrapp_func_global.transfermarkt_accueil_club)
-                        lien_club = lien_club[lien_club.index(scrapp_func_global.transfermarkt_base_url) + len(scrapp_func_global.transfermarkt_base_url): lien_club.index(
-                            str(club_to_scrapp["id"])) + len(str(club_to_scrapp["id"]))]
-                        img_link = box_info.find("a", {"href": lien_club})
-                        img = img_link.find("img")["src"]
-                        club["logo_principal"] = img
+                        # Récupération de la div contenant l'image
+                        div_logo = box_info.find("div", {"class" : "datenfakten-wappen"})
+                        # Récupération du logo 
+                        logo = div_logo.find("img")["src"]
+                        # Vérification que l'url vers le logo est valide
+                        if validators.url(logo):
+                            club["logo_principal"] = logo
                     except Exception as e:
                         exc_type, exc_obj, exc_tb = sys.exc_info()
                         logging.error(
                             f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération du logo actuel "
-                            f"du club {club_to_scrapp['nom']} ({club_to_scrapp['id']}) dans le DOM : {e} !")
+                            f"du club {club_transfermarkt['nom']} ({club_transfermarkt['id']}) dans le DOM : {e} !")
                 except Exception as e:
                     exc_type, exc_obj, exc_tb = sys.exc_info()
                     logging.error(
                         f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération des "
-                        f"informations du club {club_to_scrapp['nom']} ({club_to_scrapp['id']}) : {e} !")
+                        f"informations du club {club_transfermarkt['nom']} ({club_transfermarkt['id']}) : {e} !")
 
                 # Récupération des anciens logos du club
                 logos_club = []
                 try:
-                    logos = soup.find("h2", text=re.compile(scrapp_func_global.transfermarkt_logo_club_find))
-                    logos = logos.find_parent("div", {"class": "box"}).findAll("img")
+                    # Récupération du titre indiquant les anciens logos
+                    h2_anciens_logos = soup.find("h2", text=re.compile(transfermarkt_logo_club_find))
+                    # Récupération du bloc contenant les anciens logos 
+                    bloc_anciens_logos = h2_anciens_logos.find_parent("div", {"class": "box"})
+                    # Récupération de tous les anciens logos
+                    logos = bloc_anciens_logos.findAll("img")
+                    # Vérificatiopn de la validité des logos
                     for logo in logos:
                         try:
                             # Vérification que src soit bien un lien afin de ne pas récupérer uniquement un chemin sur un serv par ex.
@@ -225,27 +270,31 @@ def getInfoClub(club_to_scrapp):
                             exc_type, exc_obj, exc_tb = sys.exc_info()
                             logging.error(
                                 f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération d'un ancien logo "
-                                f"du club {club_to_scrapp['nom']} ({club_to_scrapp['id']}) : {e} !")
+                                f"du club {club_transfermarkt['nom']} ({club_transfermarkt['id']}) : {e} !")
                 except Exception as e:
                     exc_type, exc_obj, exc_tb = sys.exc_info()
                     logging.error(
                         f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération des anciens logos "
-                        f"du club {club_to_scrapp['nom']} ({club_to_scrapp['id']}) : {e} !")
+                        f"du club {club_transfermarkt['nom']} ({club_transfermarkt['id']}) : {e} !")
 
                 club["logos"] = logos_club
-                club["stade"] = getInfoStadeClub(club_to_scrapp)
-                scrapp_func_global.all_clubs.append(club)
-                scrapp_func_global.all_clubs_id.append(club["id_transfermarkt"])
+                
+                club["stade"] = getInfoStadeClub(club_transfermarkt)
+                
+                clubs_scrapp.append(club)
+                
+                id_transfermarkt_clubs_deja_scrapp.append(club["id_transfermarkt"])
 
+                return club
             except Exception as e:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 logging.error(
                     f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération des informations "
-                    f"du club {club_to_scrapp['nom']} ({club_to_scrapp['id']}) : {e} !")
+                    f"du club {club_transfermarkt['nom']} ({club_transfermarkt['id']}) : {e} !")
     else:
         frameinfo = getframeinfo(currentframe())
         logging.info(
-            f"[INFO] {frameinfo.lineno} Le club {club_to_scrapp['nom']} est déjà récupéré !")
+            f"[INFO] {frameinfo.lineno} Le club {club_transfermarkt['nom']} est déjà récupéré !")
 
 
 def getInfoStadeClub(club):
@@ -256,9 +305,9 @@ def getInfoStadeClub(club):
         'adresse': '',
         'images': []
     }
-    link = club["lien"].replace(scrapp_func_global.transfermarkt_url_replace,
-                                scrapp_func_global.transfermarkt_info_stade)
-    result = requests.get(link, headers=scrapp_func_global.headers)
+    link = club["lien"].replace(transfermarkt_url_replace,
+                                transfermarkt_info_stade)
+    result = requests.get(link, headers=headers)
     if result.ok:
         soup = BeautifulSoup(result.text, "html.parser")
 
@@ -268,7 +317,7 @@ def getInfoStadeClub(club):
 
             # Récupération du nom du stade
             try:
-                nom_stade = row.find("th", text=re.compile(scrapp_func_global.transfermarkt_nom_stade_find))
+                nom_stade = row.find("th", text=re.compile(transfermarkt_nom_stade_find))
                 nom_stade = nom_stade.find_parent().find("td").text
                 stade["nom"] = nom_stade
             except Exception as e:
@@ -283,7 +332,7 @@ def getInfoStadeClub(club):
 
             # Récupération de la capacité du stade
             try:
-                capacite = box_info.find("th", text=re.compile(scrapp_func_global.transfermarkt_capacite_stade_find))
+                capacite = box_info.find("th", text=re.compile(transfermarkt_capacite_stade_find))
                 capacite = capacite.find_parent().find("td").text
                 stade["capacite"] = int(capacite.replace('.', ''))
             except Exception as e:
@@ -295,7 +344,7 @@ def getInfoStadeClub(club):
             # Récupération de l'année de construction du stade
             try:
                 construction = box_info.find("th", text=re.compile(
-                    scrapp_func_global.transfermarkt_construction_stade_find))
+                    transfermarkt_construction_stade_find))
                 construction = construction.find_parent().find("td").text
                 stade["construction"] = int(construction)
             except Exception as e:
@@ -328,12 +377,12 @@ def getInfoStadeClub(club):
             # Récupération de l'adresse du stade
             adresse = ""
             try:
-                box_adresse = row.find("h2", text=re.compile(scrapp_func_global.transfermarkt_box_adresse_stade_find))
+                box_adresse = row.find("h2", text=re.compile(transfermarkt_box_adresse_stade_find))
                 box_adresse = box_adresse.find_parent("div", {
                     "class": "box"})
                 tr_adresse = box_adresse.find("th",
                                               text=re.compile(
-                                                  scrapp_func_global.transfermarkt_adresse_stade_find)).find_parent(
+                                                  transfermarkt_adresse_stade_find)).find_parent(
                     "tr")
                 adresse = tr_adresse.find("td").text.strip()
                 tr_adresse = tr_adresse.find_next_sibling("tr")
@@ -362,9 +411,9 @@ def getInfoStadeClub(club):
 def getJoueursClub(club_to_scrapp):
     joueurs = []
     # "Création" du lien du club où sont les infos de ce dernier
-    link = club_to_scrapp["lien"].replace(scrapp_func_global.transfermarkt_url_replace,
-                                          scrapp_func_global.transfermarkt_joueurs_club)
-    result = requests.get(link, headers=scrapp_func_global.headers)
+    link = club_to_scrapp["lien"].replace(transfermarkt_url_replace,
+                                          transfermarkt_joueurs_club)
+    result = requests.get(link, headers=headers)
     if result.ok:
         soup = BeautifulSoup(result.text, "html.parser")
         table_effectif = soup.find("div", {"id": "yw1"}).find("table")
@@ -373,11 +422,11 @@ def getJoueursClub(club_to_scrapp):
             for tr_joueur in tr_joueurs:
                 try:
                     link = tr_joueur.find("table").find("a")["href"]
-                    link = link.replace(scrapp_func_global.transfermarkt_info_joueur,
-                                        scrapp_func_global.transfermarkt_url_replace)
+                    link = link.replace(transfermarkt_info_joueur,
+                                        transfermarkt_url_replace)
                     match = (re.search("/spieler/", link))
                     id = link[match.end():]
-                    joueur = {"id": id, "lien": scrapp_func_global.transfermarkt_base_url + link}
+                    joueur = {"id": id, "lien": transfermarkt_base_url + link}
                     joueurs.append(joueur)
                     getInfoJoueur(joueur)
                 except Exception as e:
@@ -397,14 +446,14 @@ def getJoueursClub(club_to_scrapp):
 def getInfoJoueur(joueur_to_scrapp):
     id_transfermarkt = joueur_to_scrapp["id"]
     # "Création" du lien du club où sont les infos de ce dernier
-    link = joueur_to_scrapp["lien"].replace(scrapp_func_global.transfermarkt_url_replace,
-                                            scrapp_func_global.transfermarkt_info_joueur)
-    result = requests.get(link, headers=scrapp_func_global.headers)
+    link = joueur_to_scrapp["lien"].replace(transfermarkt_url_replace,
+                                            transfermarkt_info_joueur)
+    result = requests.get(link, headers=headers)
     if result.ok:
         soup = BeautifulSoup(result.text, "html.parser")
         # Si le joueur n'est pas encore présent dans les données actuelles, récupération infos persos + carrière sinon
         # juste mise à jour de la carrière
-        if id_transfermarkt not in scrapp_func_global.all_joueurs_id:
+        if id_transfermarkt not in all_joueurs_id:
             joueur = {
                 "id_transfermarkt": joueur_to_scrapp["id"],
                 "lien_transfermarkt": joueur_to_scrapp["lien"],
@@ -453,7 +502,7 @@ def getInfoJoueur(joueur_to_scrapp):
 
                 # Récupération du nom complet du joueur
                 try:
-                    nom_complet = info_table.find(text=re.compile(scrapp_func_global.transfermarkt_nom_joueur_find))
+                    nom_complet = info_table.find(text=re.compile(transfermarkt_nom_joueur_find))
                     if nom_complet is not None:
                         joueur["nom_complet"] = nom_complet.find_parent().find_next_sibling().text
                     else:
@@ -469,7 +518,7 @@ def getInfoJoueur(joueur_to_scrapp):
 
                 # Récupération de la date de naissance du joueur
                 try:
-                    naissance = info_table.find(text=re.compile(scrapp_func_global.transfermarkt_naissance_joueur_find))
+                    naissance = info_table.find(text=re.compile(transfermarkt_naissance_joueur_find))
                     naissance = naissance.find_parent().find_next_sibling().find("a").text
                     naissance = datetime.strptime(naissance.strip(), '%d %b %Y')
                     joueur["date_naissance"] = naissance.date().isoformat()
@@ -482,7 +531,7 @@ def getInfoJoueur(joueur_to_scrapp):
                 # Récupération des nationalités du joueur
                 try:
                     nationalite = info_table.find(
-                        text=re.compile(scrapp_func_global.transfermarkt_nationalite_joueur_find))
+                        text=re.compile(transfermarkt_nationalite_joueur_find))
                     nationalite = nationalite.find_parent().find_next_sibling()
                     for img in nationalite.findAll("img"):
                         try:
@@ -501,7 +550,7 @@ def getInfoJoueur(joueur_to_scrapp):
 
                 # Récupération du pied fort du joueur
                 try:
-                    pied = info_table.find(text=re.compile(scrapp_func_global.transfermarkt_pied_joueur_find))
+                    pied = info_table.find(text=re.compile(transfermarkt_pied_joueur_find))
                     joueur["pied"] = pied.find_parent().find_next_sibling().text
                 except Exception as e:
                     exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -511,7 +560,7 @@ def getInfoJoueur(joueur_to_scrapp):
 
                 # Récupération de la taille du joueur
                 try:
-                    taille = info_table.find(text=re.compile(scrapp_func_global.transfermarkt_taille_joueur_find))
+                    taille = info_table.find(text=re.compile(transfermarkt_taille_joueur_find))
                     joueur["taille"] = re.sub('\D', '', taille.find_parent().find_next_sibling().text)
                 except Exception as e:
                     exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -522,7 +571,7 @@ def getInfoJoueur(joueur_to_scrapp):
                 # Récupération de l'équipementier actuel du joueur
                 try:
                     equipementier = info_table.find(
-                        text=re.compile(scrapp_func_global.transfermarkt_equipementier_joueur_find))
+                        text=re.compile(transfermarkt_equipementier_joueur_find))
                     joueur["equipementier"] = equipementier.find_parent().find_next_sibling().text
                 except Exception as e:
                     exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -542,8 +591,8 @@ def getInfoJoueur(joueur_to_scrapp):
                     for span_position_principale in span_positions_principales:
                         try:
                             position = [class_type for class_type in span_position_principale["class"]
-                                        if scrapp_func_global.class_css_position_principale_start in class_type
-                                        ][0].replace(scrapp_func_global.class_css_position_principale_start, "")
+                                        if class_css_position_principale_start in class_type
+                                        ][0].replace(class_css_position_principale_start, "")
                             if position.isdigit():
                                 positions_principales.append(int(position))
                         except Exception as e:
@@ -563,8 +612,8 @@ def getInfoJoueur(joueur_to_scrapp):
                     for span_position_secondaire in span_positions_secondaires:
                         try:
                             position = [class_type for class_type in span_position_secondaire["class"]
-                                        if scrapp_func_global.class_css_position_secondaire_start in class_type
-                                        ][0].replace(scrapp_func_global.class_css_position_secondaire_start, "")
+                                        if class_css_position_secondaire_start in class_type
+                                        ][0].replace(class_css_position_secondaire_start, "")
                             if position.isdigit():
                                 positions_secondaires.append(int(position))
                         except Exception as e:
@@ -585,10 +634,10 @@ def getInfoJoueur(joueur_to_scrapp):
                 date_fin_contrat = None
                 try:
                     # Récupère la date de fin du contrat avec le club qui prête le joueur (si prêté)
-                    fin_contrat = info_table.find(text=re.compile(scrapp_func_global.transfermarkt_fin_contrat_pret_find))
+                    fin_contrat = info_table.find(text=re.compile(transfermarkt_fin_contrat_pret_find))
                     # Si le joueur n'est pas prêté, récupère la date de fin du contrat
                     if fin_contrat is None:
-                        fin_contrat = info_table.find(text=re.compile(scrapp_func_global.transfermarkt_fin_contrat_find))
+                        fin_contrat = info_table.find(text=re.compile(transfermarkt_fin_contrat_find))
 
                     fin_contrat = fin_contrat.find_parent().find_next_sibling().text
                     try:
@@ -614,12 +663,12 @@ def getInfoJoueur(joueur_to_scrapp):
                     f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération des informations "
                     f"personnelles du joueur {joueur_to_scrapp['id']} : {e} !")
 
-            scrapp_func_global.all_joueurs.append(joueur)
-            scrapp_func_global.all_joueurs_id.append(joueur["id_transfermarkt"])
+            all_joueurs.append(joueur)
+            all_joueurs_id.append(joueur["id_transfermarkt"])
         else:
             try:
                 # Récupération du joueur correspondant à l'id_transfermarkt
-                joueur = next((x for x in scrapp_func_global.all_joueurs if x["id_transfermarkt"] == id_transfermarkt),
+                joueur = next((x for x in all_joueurs if x["id_transfermarkt"] == id_transfermarkt),
                               None)
 
                 # Indiquer dans le log le joueur que l'on est en train de traiter
@@ -634,7 +683,7 @@ def getInfoJoueur(joueur_to_scrapp):
 
                     # Récupération de la taille du joueur
                     try:
-                        taille = info_table.find(text=re.compile(scrapp_func_global.transfermarkt_taille_joueur_find))
+                        taille = info_table.find(text=re.compile(transfermarkt_taille_joueur_find))
                         joueur["taille"] = re.sub('\D', '', taille.find_parent().find_next_sibling().text)
                     except Exception as e:
                         exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -645,7 +694,7 @@ def getInfoJoueur(joueur_to_scrapp):
                     # Récupération de l'équipementier actuel du joueur
                     try:
                         equipementier = info_table.find(
-                            text=re.compile(scrapp_func_global.transfermarkt_equipementier_joueur_find))
+                            text=re.compile(transfermarkt_equipementier_joueur_find))
                         joueur["equipementier"] = equipementier.find_parent().find_next_sibling().text
                     except Exception as e:
                         exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -665,8 +714,8 @@ def getInfoJoueur(joueur_to_scrapp):
                         for span_position_principale in span_positions_principales:
                             try:
                                 position = [class_type for class_type in span_position_principale["class"]
-                                            if scrapp_func_global.class_css_position_principale_start in class_type
-                                            ][0].replace(scrapp_func_global.class_css_position_principale_start, "")
+                                            if class_css_position_principale_start in class_type
+                                            ][0].replace(class_css_position_principale_start, "")
                                 if position.isdigit():
                                     positions_principales.append(int(position))
                             except Exception as e:
@@ -686,8 +735,8 @@ def getInfoJoueur(joueur_to_scrapp):
                         for span_position_secondaire in span_positions_secondaires:
                             try:
                                 position = [class_type for class_type in span_position_secondaire["class"]
-                                            if scrapp_func_global.class_css_position_secondaire_start in class_type
-                                            ][0].replace(scrapp_func_global.class_css_position_secondaire_start, "")
+                                            if class_css_position_secondaire_start in class_type
+                                            ][0].replace(class_css_position_secondaire_start, "")
                                 if position.isdigit():
                                     positions_secondaires.append(int(position))
                             except Exception as e:
@@ -707,10 +756,10 @@ def getInfoJoueur(joueur_to_scrapp):
                     # Récupération date de fin du dernier contrat du joueur (çàd celui actuel normalement)
                     try:
                         # Récupère la date de fin du contrat avec le club qui prête le joueur (si prêté)
-                        fin_contrat = info_table.find(text=re.compile(scrapp_func_global.transfermarkt_fin_contrat_pret_find))
+                        fin_contrat = info_table.find(text=re.compile(transfermarkt_fin_contrat_pret_find))
                         # Si le joueur n'est pas prêté, récupère la date de fin du contrat
                         if fin_contrat is None:
-                            fin_contrat = info_table.find(text=re.compile(scrapp_func_global.transfermarkt_fin_contrat_find))
+                            fin_contrat = info_table.find(text=re.compile(transfermarkt_fin_contrat_find))
 
                         fin_contrat = fin_contrat.find_parent().find_next_sibling().text
                         try:
@@ -752,9 +801,9 @@ def getInfoJoueur(joueur_to_scrapp):
 
 def getContratsJoueur(joueur_to_scrapp, date_fin_contrat):
     # "Création" du lien du joueur où sont les transfert de ce dernier
-    link = joueur_to_scrapp["lien"].replace(scrapp_func_global.transfermarkt_url_replace,
-                                            scrapp_func_global.transfermarkt_transferts_joueur)
-    result = requests.get(link, headers=scrapp_func_global.headers)
+    link = joueur_to_scrapp["lien"].replace(transfermarkt_url_replace,
+                                            transfermarkt_transferts_joueur)
+    result = requests.get(link, headers=headers)
     if result.ok:
         soup = BeautifulSoup(result.text, "html.parser")
         try:
@@ -762,11 +811,11 @@ def getContratsJoueur(joueur_to_scrapp, date_fin_contrat):
             row = soup.find("div", {"id": "subnavi"}).find_next_sibling("div", {"class": "row"})
             # Récupération du tableau contenant les différents transferts du joueur
             titre_tableau_transferts = row.find("h2",
-                                                text=re.compile(scrapp_func_global.transfermarkt_historique_transfert_find))
+                                                text=re.compile(transfermarkt_historique_transfert_find))
             tableau_transferts = titre_tableau_transferts.find_parent()
 
             # Récupération des lignes du tableau correspondant à un 'transfert' (une seule classe)
-            lignes = tableau_transferts.findAll("div", {"class": scrapp_func_global.transfermarkt_class_transfert_ligne})
+            lignes = tableau_transferts.findAll("div", {"class": transfermarkt_class_transfert_ligne})
             lignes = [ligne for ligne in lignes if len(ligne["class"]) == 1]
             # Inverse le tableau afin d'avoir les contrats dans un ordre croissant de date
             lignes = lignes[::-1]
@@ -795,7 +844,7 @@ def getContratsJoueur(joueur_to_scrapp, date_fin_contrat):
                 club_entrant_nom = club_entrant["nom"]
                 club_entrant_id = club_entrant["id"]
 
-                contrat = copy.deepcopy(scrapp_func_global.contrat_vide)
+                contrat = copy.deepcopy(contrat_vide)
                 contrat["debut"] = date_transfert
 
                 if montant_transfert == "Transfert libre":
@@ -877,9 +926,9 @@ def majContratsJoueur(joueur, joueur_to_scrapp, date_fin_contrat):
     contrats.sort(key=lambda x: x["fin"], reverse=True)
     contrat_actuel = contrats[0]
     # "Création" du lien du joueur où sont les transfert de ce dernier
-    link = joueur_to_scrapp["lien"].replace(scrapp_func_global.transfermarkt_url_replace,
-                                            scrapp_func_global.transfermarkt_transferts_joueur)
-    result = requests.get(link, headers=scrapp_func_global.headers)
+    link = joueur_to_scrapp["lien"].replace(transfermarkt_url_replace,
+                                            transfermarkt_transferts_joueur)
+    result = requests.get(link, headers=headers)
     if result.ok:
         soup = BeautifulSoup(result.text, "html.parser")
         try:
@@ -888,11 +937,11 @@ def majContratsJoueur(joueur, joueur_to_scrapp, date_fin_contrat):
 
             # Récupération du tableau contenant les différents transferts du joueur
             titre_tableau_transferts = row.find("h2",
-                                                text=re.compile(scrapp_func_global.transfermarkt_historique_transfert_find))
+                                                text=re.compile(transfermarkt_historique_transfert_find))
             tableau_transferts = titre_tableau_transferts.find_parent()
 
             # Récupération des lignes du tableau correspondant à un 'transfert' (une seule classe)
-            lignes = tableau_transferts.findAll("div", {"class": scrapp_func_global.transfermarkt_class_transfert_ligne})
+            lignes = tableau_transferts.findAll("div", {"class": transfermarkt_class_transfert_ligne})
             lignes = [ligne for ligne in lignes if len(ligne["class"]) == 1]
             # Inverse le tableau afin d'avoir les contrats dans un ordre croissant de date
             lignes = lignes[::-1]
@@ -1005,7 +1054,7 @@ def majContratsJoueur(joueur, joueur_to_scrapp, date_fin_contrat):
                         club_entrant_nom = club_entrant["nom"]
                         club_entrant_id = club_entrant["id"]
 
-                        contrat = copy.deepcopy(scrapp_func_global.contrat_vide)
+                        contrat = copy.deepcopy(contrat_vide)
                         contrat["debut"] = date_transfert
 
                         if montant_transfert == "Transfert libre":
@@ -1080,7 +1129,7 @@ def majContratsJoueur(joueur, joueur_to_scrapp, date_fin_contrat):
 def getMontantTransfertLigne(ligne):
     montant = 0
     try :
-        montant_transfert = ligne.find("div", {"class": scrapp_func_global.transfermarkt_class_transfert_ligne + "__fee"})
+        montant_transfert = ligne.find("div", {"class": transfermarkt_class_transfert_ligne + "__fee"})
         if montant_transfert is not None:
             montant = montant_transfert.text.strip()
     except Exception as e:
@@ -1093,7 +1142,7 @@ def getMontantTransfertLigne(ligne):
 def getDateTransfertLigne(ligne):
     date = ""
     try:
-        date_transfert = ligne.find("div", {"class": scrapp_func_global.transfermarkt_class_transfert_ligne + "__date"})
+        date_transfert = ligne.find("div", {"class": transfermarkt_class_transfert_ligne + "__date"})
         date_transfert = date_transfert.text.strip()
         date_transfert = datetime.strptime(date_transfert, "%d %b %Y")
         date = date_transfert.date().isoformat()
@@ -1109,7 +1158,7 @@ def getClubEntrantLigne(ligne):
     club = {"id": -1, "nom": ""}
     try:
         club_entrant_div = ligne.find("div",
-                                      {"class": scrapp_func_global.transfermarkt_class_transfert_ligne + "__new-club"})
+                                      {"class": transfermarkt_class_transfert_ligne + "__new-club"})
         if club_entrant_div is not None:
             club["nom"] = club_entrant_div.text.strip()
         if club["nom"] != "Fin de carrière" and club["nom"] != "Pause carrière" and club["nom"] != "":
@@ -1119,9 +1168,9 @@ def getClubEntrantLigne(ligne):
             match = (re.search("/verein/", link_club))
             id = link_club[match.end():]
             club["id"] = id
-            link_club = link_club.replace(scrapp_func_global.transfermarkt_transferts_joueur,
-                                              scrapp_func_global.transfermarkt_url_replace)
-            getInfoClub({"id": id, "nom": club["nom"], "lien": scrapp_func_global.transfermarkt_base_url + link_club})
+            link_club = link_club.replace(transfermarkt_transferts_joueur,
+                                              transfermarkt_url_replace)
+            getInfoClub({"id": id, "nom": club["nom"], "lien": transfermarkt_base_url + link_club})
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         logging.error(
@@ -1134,7 +1183,7 @@ def getClubPartantLigne(ligne):
     club = {"id": -1, "nom": ""}
     try:
         club_sortant_div = ligne.find("div",
-                                      {"class": scrapp_func_global.transfermarkt_class_transfert_ligne + "__old-club"})
+                                      {"class": transfermarkt_class_transfert_ligne + "__old-club"})
         if club_sortant_div is not None:
             club["nom"] = club_sortant_div.text.strip()
         if club["nom"] != "Fin de carrière" and club["nom"] != "Pause carrière" and club["nom"] != "":
@@ -1145,9 +1194,9 @@ def getClubPartantLigne(ligne):
                 match = (re.search("/verein/", link_club))
                 id = link_club[match.end():]
                 club["id"] = id
-                link_club = link_club.replace(scrapp_func_global.transfermarkt_transferts_joueur,
-                                              scrapp_func_global.transfermarkt_url_replace)
-                getInfoClub({"id": id, "nom": club["nom"], "lien": scrapp_func_global.transfermarkt_base_url + link_club})
+                link_club = link_club.replace(transfermarkt_transferts_joueur,
+                                              transfermarkt_url_replace)
+                getInfoClub({"id": id, "nom": club["nom"], "lien": transfermarkt_base_url + link_club})
         return club
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -1161,7 +1210,7 @@ def getContratPret(lignes, index_ligne, ligne, page):
         montant = getMontantTransfertLigne(ligne)
         # S'il s'agit du début d'un prêt
         if re.search("prêt", montant, re.IGNORECASE) and montant != "Fin du prêt":
-            contrat = copy.deepcopy(scrapp_func_global.contrat_vide)
+            contrat = copy.deepcopy(contrat_vide)
             club_entrant = getClubEntrantLigne(ligne)
             contrat["club"] = club_entrant["id"]
             contrat["debut"] = getDateTransfertLigne(ligne)
@@ -1190,8 +1239,8 @@ def montantToInt(montant):
     try:
         montant = re.sub("[^0-9,]", "", montant).replace(",", ".")
         montant = float(montant)
-        if abrev in scrapp_func_global.montant_abrev_valeur:
-            facteur = scrapp_func_global.montant_abrev_valeur[abrev]
+        if abrev in montant_abrev_valeur:
+            facteur = montant_abrev_valeur[abrev]
             montant = montant * facteur
             montant = int(montant)
             return montant
@@ -1203,7 +1252,14 @@ def montantToInt(montant):
             f"transfert en int : {e} !")
     return 0
 
-
+"""
+    Fonction permettant de renommer certains pays afin de ne pas foutre le zbeul côté enregistrement dans la BD
+    TODO : D'ailleurs voir si cette fonction n'a pas plus de sens d'être du côté du PHP ! 
+    Entrée :
+        - pays, nom du pays scrapp
+    Sortie : 
+        - pays, nom du pays scrapp normalement présent dans la bd
+"""
 def triNation(pays):
     if pays is not None:
         if pays == 'Angleterre':

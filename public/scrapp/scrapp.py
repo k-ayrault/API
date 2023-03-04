@@ -23,9 +23,9 @@ json_id_joueurs = Path("scrapp/donnees/id_joueurs.json").absolute()
 
 def save():
     with open(json_clubs, "w+") as clubs_json:
-        json.dump(scrapp_func_global.all_clubs, clubs_json, indent=4, sort_keys=True, default=str)
+        json.dump(scrapp_func_global.clubs_scrapp, clubs_json, indent=4, sort_keys=True, default=str)
     with open(json_id_clubs, "w+") as id_clubs_json:
-        json.dump(scrapp_func_global.all_clubs_id, id_clubs_json, indent=4, sort_keys=True, default=str)
+        json.dump(scrapp_func_global.id_transfermarkt_clubs_deja_scrapp, id_clubs_json, indent=4, sort_keys=True, default=str)
     with open(json_joueurs, "w+") as joueurs_json:
         json.dump(scrapp_func_global.all_joueurs, joueurs_json, indent=4, sort_keys=True, default=str)
     with open(json_id_joueurs, "w+") as id_joueurs_json:
@@ -34,10 +34,10 @@ def save():
 
 if json_clubs.exists():
     with open(json_clubs, "r") as clubs_json:
-        scrapp_func_global.all_clubs = json.load(clubs_json)
+        scrapp_func_global.clubs_scrapp = json.load(clubs_json)
 if json_id_clubs.exists():
     with open(json_id_clubs, "r") as id_clubs_json:
-        scrapp_func_global.all_clubs_id = json.load(id_clubs_json)
+        scrapp_func_global.id_transfermarkt_clubs_deja_scrapp = json.load(id_clubs_json)
 if json_joueurs.exists():
     with open(json_joueurs, "r") as joueurs_json:
         scrapp_func_global.all_joueurs = json.load(joueurs_json)
