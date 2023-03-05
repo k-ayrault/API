@@ -439,38 +439,60 @@ def getInfoStadeClub(club):
 
     return stade
 
-
-def getJoueursClub(club_to_scrapp):
+"""
+    Fonction permettant de récupérer les joueurs du club en entrée de cette saison.
+    Entrée :
+        - club, objet contenant les informations "d'identification" TransferMarkt du club dont on veut les joueurs ("id", "lien" et "nom")
+    Sortie :
+        - joueurs, tableau contenant les joueurs du club en entrée avec leur id transfermarkt ("id") ainsi que leur lien transfermarkt ("lien")
+"""
+def getJoueursClub(club):
+    # Tableaux allant contenir les joueurs du club
     joueurs = []
-    # "Création" du lien du club où sont les infos de ce dernier
-    link = club_to_scrapp["lien"].replace(transfermarkt_url_replace,
+    # "Création" du lien du club où sont les joueurs de ce dernier
+    link = club["lien"].replace(transfermarkt_url_replace,
                                           transfermarkt_joueurs_club)
+    # Résultat de la requête HTTP vers la page link
     result = requests.get(link, headers=headers)
+    # Vérification que la reqête s'est bien passée
     if result.ok:
+        # Transformation du code HTML de la requête en objet BeautifulSoup
         soup = BeautifulSoup(result.text, "html.parser")
+        # Récupération de la table contenant l'effectif du club
         table_effectif = soup.find("div", {"id": "yw1"}).find("table")
         try:
-            tr_joueurs = table_effectif.find("tbody").findAll("td", {"class": "posrela"})
-            for tr_joueur in tr_joueurs:
+            # Récupération des lignes de l'effectif correspondant à un joueur chacune
+            ligne_joueurs = table_effectif.find("tbody").findAll("td", {"class": "posrela"})
+            # Traitement de chaque ligne 
+            for ligne_joueur in ligne_joueurs:
                 try:
-                    link = tr_joueur.find("table").find("a")["href"]
-                    link = link.replace(transfermarkt_info_joueur,
+                    # Récupération de l'href vers la page TransferMarkt du joueur
+                    href_link = ligne_joueur.find("table").find("a")["href"]
+                    # Création du lien vers la page du joueur en remplaçant l'élèment indiquant la page TransferMarkt du joueur que l'on consulte par un élément générique 
+                    link = href_link.replace(transfermarkt_info_joueur,
                                         transfermarkt_url_replace)
-                    match = (re.search("/spieler/", link))
-                    id = link[match.end():]
+                    # Index où est normalenemt l'identifiant du joueur
+                    index_id_joueur = (re.search("/spieler/", link)).end()
+                    # Récupération de la fin du lien uniquement qui commence normalement par l'identifiant
+                    link = link[index_id_joueur:]
+                    # Récupération de l'index juste après l'identifiant s'il n'est pas le dernière élément du lien 
+                    index_char_apres_id = link.find("/") if link.find("/") else len(link)
+                    # Récupération de l'identifiant dans le lien
+                    id = link[:index_char_apres_id]
+                    # Création du joueur  
                     joueur = {"id": id, "lien": transfermarkt_base_url + link}
+                    # Ajout du joueur dans la liste des joueurs
                     joueurs.append(joueur)
-                    getInfoJoueur(joueur)
                 except Exception as e:
                     exc_type, exc_obj, exc_tb = sys.exc_info()
                     logging.error(
                         f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération de l'id et du "
-                        f"lien d'un joueur du club {club_to_scrapp['nom']} ({club_to_scrapp['id']}) : {e} !")
+                        f"lien d'un joueur du club {club['nom']} ({club['id']}) : {e} !")
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             logging.error(
                 f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération de la liste des joueurs "
-                f"du club {club_to_scrapp['nom']} ({club_to_scrapp['id']}) : {e} !")
+                f"du club {club['nom']} ({club['id']}) : {e} !")
 
     return joueurs
 
