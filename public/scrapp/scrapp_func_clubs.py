@@ -104,22 +104,22 @@ def getInfoClub(club_transfermarkt):
         # Résultat de la requête HTTP vers la page TransferMarkt des informations du club
         result = requests.get(link, headers=headers)
 
-        # Initialisation de l'objet allant contenir les informations du club
-        club = {
-            "id_transfermarkt": id_club_transfermarkt,
-            "nom": '',
-            "pays": '',
-            "site": '',
-            "creation": '',
-            "couleurs": [],
-            "logo_principal": '',
-            "logos": [],
-            "stade": {}
-        }
-
         # Vérification que la requête HTTP s'est bien passée
-        if result.ok:
-            # Transformation du code HTML de la page en objet BeautifulSou^p
+        if result.ok:         
+            # Initialisation de l'objet allant contenir les informations du club
+            club = {
+                "id_transfermarkt": id_club_transfermarkt,
+                "nom": '',
+                "pays": '',
+                "site": '',
+                "creation": '',
+                "couleurs": [],
+                "logo_principal": '',
+                "logos": [],
+                "stade": {}
+            }
+
+            # Transformation du code HTML de la page en objet BeautifulSoup
             soup = BeautifulSoup(result.text, "html.parser")
             try:
                 # Récupération du bandeau bleu de navigation du club
@@ -296,29 +296,44 @@ def getInfoClub(club_transfermarkt):
         logging.info(
             f"[INFO] {frameinfo.lineno} Le club {club_transfermarkt['nom']} est déjà récupéré !")
 
-
+"""
+    Fonction permettant de scrapper divers informations sur le stade du club en entrée de la fonction
+    Entree :
+        - club, objet contenant les informations "d'identification" ("id", "lien" et "nom") TransferMarkt du club dont on veut scrapp les informations de son stade        
+    Sortie :
+        - stade, informations scrapp du stade
+"""
 def getInfoStadeClub(club):
-    stade = {
-        'nom': '',
-        'capacite': 0,
-        'construction': 0000,
-        'adresse': '',
-        'images': []
-    }
+
     link = club["lien"].replace(transfermarkt_url_replace,
                                 transfermarkt_info_stade)
     result = requests.get(link, headers=headers)
     if result.ok:
+        # Initialisation de l'objet allant contenir les informations du club
+        stade = {
+            'nom': '',
+            'capacite': 0,
+            'construction': 0000,
+            'adresse': '',
+            'images': []
+        }
+        # Transformation du code HTML de la page en objet BeautifulSoup
         soup = BeautifulSoup(result.text, "html.parser")
 
         # Récupération de la div contenant ces infos
         try:
-            row = soup.find("div", {"id": "subnavi"}).find_next_sibling("div", {"class": "row"})
+            # Récupération du bandeau bleu de navigation du club
+            subnavi = soup.find("div", {"id": "subnavi"})
 
+            # Récupération de la div contenant toutes les informations que l'on souhaite
+            row = subnavi.find_next_sibling("div", {"class": "row"})
+            
             # Récupération du nom du stade
             try:
-                nom_stade = row.find("th", text=re.compile(transfermarkt_nom_stade_find))
-                nom_stade = nom_stade.find_parent().find("td").text
+                # Récupération de la ligne contenant le nom du stade
+                ligne_nom_stade = row.find("th", text=re.compile(transfermarkt_nom_stade_find)).find_parent("tr")
+                # Récupération du nom du stade
+                nom_stade = ligne_nom_stade.find("td").text
                 stade["nom"] = nom_stade
             except Exception as e:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -327,13 +342,16 @@ def getInfoStadeClub(club):
                     f"du club {club['nom']} ({club['id']}) : {e} !")
 
             # Récupération de la div contenant les informations du stade via le nom de ce dernier
-            box_info = row.find("h1", text=re.compile(stade["nom"]))
-            box_info = box_info.find_parent("div", {"class": "box"})
+            h1_box_info = row.find("h2", text=re.compile(stade["nom"]))
+            box_info = h1_box_info.find_parent("div", {"class": "box"})
 
             # Récupération de la capacité du stade
             try:
-                capacite = box_info.find("th", text=re.compile(transfermarkt_capacite_stade_find))
-                capacite = capacite.find_parent().find("td").text
+                # Récupération de la ligne correspondant à la capacité du stade
+                ligne_capacite_stade = box_info.find("th", text=re.compile(transfermarkt_capacite_stade_find)).find_parent("tr")
+                # Récupération de la capacité du stade
+                capacite = ligne_capacite_stade.find("td").text
+                 
                 stade["capacite"] = int(capacite.replace('.', ''))
             except Exception as e:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -343,9 +361,11 @@ def getInfoStadeClub(club):
 
             # Récupération de l'année de construction du stade
             try:
-                construction = box_info.find("th", text=re.compile(
-                    transfermarkt_construction_stade_find))
-                construction = construction.find_parent().find("td").text
+                # Récupération de la ligne contenant l'année de construction du stade
+                ligne_construction_stade = box_info.find("th", text=re.compile(
+                    transfermarkt_construction_stade_find)).find_parent("tr")
+                # Récupérationd de l'année de construction du stade
+                construction = ligne_construction_stade.find("td").text
                 stade["construction"] = int(construction)
             except Exception as e:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -353,12 +373,15 @@ def getInfoStadeClub(club):
                     f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération de l'année de "
                     f"construction du stade du club {club['nom']} ({club['id']}) : {e} !")
 
-            # Récupération des images du stade
+            # Tableau allant contenir les image du stade
             images_stade = []
             try:
+                # Récupération de toutes les images du stade
                 images = box_info.findAll("img")
+                # Récupération de chaque url 
                 for logo in images:
                     try:
+                        # Vérification que l'url vers l'image est valide
                         if validators.url(logo["src"]):
                             images_stade.append(logo["src"])
                     except Exception as e:
@@ -375,30 +398,39 @@ def getInfoStadeClub(club):
             stade["images"] = images_stade
 
             # Récupération de l'adresse du stade
-            adresse = ""
             try:
-                box_adresse = row.find("h2", text=re.compile(transfermarkt_box_adresse_stade_find))
-                box_adresse = box_adresse.find_parent("div", {
+                # Récupération du 'h2' de la box stockant l'adresse du stade
+                h2_box_adresse = row.find("h2", text=re.compile(transfermarkt_box_adresse_stade_find))
+                # Récupération de la box stockant l'adresse du stade
+                box_adresse = h2_box_adresse.find_parent("div", {
                     "class": "box"})
-                tr_adresse = box_adresse.find("th",
+                # Récupération de la première ligne où est stocké l'adresse
+                ligne_adresse = box_adresse.find("th",
                                               text=re.compile(
                                                   transfermarkt_adresse_stade_find)).find_parent(
                     "tr")
-                adresse = tr_adresse.find("td").text.strip()
-                tr_adresse = tr_adresse.find_next_sibling("tr")
-                th_text = tr_adresse.find("th").text
-                while th_text == "" and tr_adresse is not None:
-                    adresse += ", " + tr_adresse.find("td").text.strip()
-                    tr_adresse = tr_adresse.find_next_sibling("tr")
-                    if tr_adresse is not None:
-                        th_text = tr_adresse.find("th").text
+                # Récupération du début de l'adresse
+                adresse = ligne_adresse.find("td").text.strip()
+                # Récupération de la prochaine ligne stockant la suite de l'adresse 
+                ligne_adresse = ligne_adresse.find_next_sibling("tr")
+                # Récupération du texte de cette ligne correspondant à la suite de l'adresse
+                th_text = ligne_adresse.find("th").text
+                # On complète l'adresse tant la ligne suivante existe et son texte n'est pas null
+                while th_text == "" and ligne_adresse is not None:
+                    # On ajoute le texte à l'adresse afin de compléter cette dernière
+                    adresse += ", " + ligne_adresse.find("td").text.strip()
+                    # Récupération de la ligne suivante
+                    ligne_adresse = ligne_adresse.find_next_sibling("tr")
+                    # Si cette ligne existe, on récupère son texte
+                    if ligne_adresse is not None:
+                        th_text = ligne_adresse.find("th").text
+                stade["adresse"] = adresse
             except Exception as e:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 logging.error(
                     f"[ERROR] {exc_tb.tb_lineno} Un problème a été rencontré lors de la récupération de l'adresse du "
                     f"stade du club {club['nom']} ({club['id']}) : {e} !")
 
-            stade["adresse"] = adresse
 
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
