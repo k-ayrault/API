@@ -75,3 +75,34 @@ class ScrappJoueur:
         except Exception as exception:
             logging.error(f"[ERROR] Un problème a été rencontré lors de la récupération de la 'table' contenant les infos du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
             return None
+        
+    """
+        Fonction qui récupère le nom et le prénom du joueur via le header de sa page TransferMarkt
+        Entrée : 
+        Sortie :
+            - nom, Nom du joueur
+            - prenom, Prénom du joueur
+            - ou None si la récupération ne s'est pas passé comme prévu
+    """
+    def scrappNomEtPrenom(self):
+        try:
+            nom, prenom = "", ""
+            # Récupération du "titre" du nom/prénom du joueur
+            h1_name_joueur = self.transfermarkt_header_joueur.find(
+                "div", {"class": "data-header__headline-container"}).find("h1")
+            # Suppression du numéro du joueur dans ce titre
+            span_numero_joueur = h1_name_joueur.find(
+                "span", {"class": "data-header__shirt-number"})
+            if span_numero_joueur is not None:
+                span_numero_joueur.decompose()
+            # Récupération du nom du joueur présent dans la balise <strong>
+            nom = h1_name_joueur.find("strong").text
+            # Suppression du nom dans le titre afin de n'avoir plus que le prénom
+            h1_name_joueur.find("strong").decompose()
+            # Récupération du prénom qui est présent dans le reste du titre
+            prenom = h1_name_joueur.text.strip()
+
+            return nom, prenom
+        except Exception as exception:
+            logging.error(f"[ERROR] Un problème a été rencontré lors de la récupération du nom et prénom du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
+            return None

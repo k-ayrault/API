@@ -25,5 +25,13 @@ class TestScrappJoueur(unittest.TestCase):
         info_table = self.scrapp_joueur.getInfoTableJoueur()
         self.assertIsNotNone(info_table)
 
+    def testScrappNomEtPrenom(self):
+        html = self.scrapp_joueur.getHTML()
+        header = self.scrapp_joueur.getHeaderInfoJoueur()
+        nom, prenom = self.scrapp_joueur.scrappNomEtPrenom()
+        self.assertEqual(nom, "Sánchez")
+        self.assertEqual(prenom, "Alexis")
+
+
 if __name__ == '__main__':
     unittest.main()
