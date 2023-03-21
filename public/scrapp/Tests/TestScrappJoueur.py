@@ -32,6 +32,11 @@ class TestScrappJoueur(unittest.TestCase):
         self.assertEqual(nom, "Sánchez")
         self.assertEqual(prenom, "Alexis")
 
+    def testScrappNomComplet(self):
+        html = self.scrapp_joueur.getHTML()
+        info_table = self.scrapp_joueur.getInfoTableJoueur()
+        nom_complet = self.scrapp_joueur.scrappNomComplet()
+        self.assertEqual(nom_complet, "Alexis Alejandro Sánchez Sánchez")
 
 if __name__ == '__main__':
     unittest.main()

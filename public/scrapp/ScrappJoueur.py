@@ -106,3 +106,32 @@ class ScrappJoueur:
         except Exception as exception:
             logging.error(f"[ERROR] Un problème a été rencontré lors de la récupération du nom et prénom du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
             return None
+    
+    """
+        Fonction qui récupère le nom complet dans la table contenant les informations personnelles du joueur sur sa page TransferMarkt
+        Entrée :
+        Sortie :
+            - nom_complet, Nom complet du joueur si la récupération s'est déroulé correctement
+                sinon None
+    """
+    def scrappNomComplet(self):
+        try:
+            nom_complet = ""
+            # Récupération de "noeud" contenant le texte correspondant au label du nom complet afin de récupérer son span
+            label_nom_complet = self.transfermarkt_info_table_joueur.find(
+                string=re.compile(transfermarkt_nom_joueur_find))
+            
+            if label_nom_complet is not None:
+                # Récupération du span contenant le label afin de récupérer le prochain span qui contient le nom complet
+                span_label_nom_complet = label_nom_complet.find_parent("span")
+                # Récupération du span contenant le nom complet
+                span_nom_complet = span_label_nom_complet.find_next_sibling("span")
+                # Récupération du texte du span, donc le nom complet
+                nom_complet = span_nom_complet.text.strip()
+
+                return nom_complet   
+            else: 
+                raise Exception(f"Le label '{transfermarkt_nom_joueur_find}' est introuvable dans la table d'info")
+        except Exception as exception:
+            logging.error(f"[ERROR] Un problème a été rencontré lors de la récupération du nom complet du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
+            return None
