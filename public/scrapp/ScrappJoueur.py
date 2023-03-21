@@ -58,6 +58,12 @@ class ScrappJoueur:
             logging.error(f"[ERROR] Un problème a été rencontré lors de la récupération du header sur la page du joueur TransferMarkt n°{self.id_joueur_transfermarkt} : {exception}  ")
             return None
     
+    """
+        Fonction qui récupère la "table" contenant les informations personnelles du joueur sur sa page TransferMarkt
+        Entrée :
+        Sortie :
+            - self.transfermarkt_info_table_joueur, la "table" si correctement récupéré sinon None
+    """
     def getInfoTableJoueur(self):
         try:
             # Récupération de la div contenant les données du joueur (le body de la page du joueur en somme)
