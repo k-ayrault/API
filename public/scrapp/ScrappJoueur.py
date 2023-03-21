@@ -38,7 +38,34 @@ class ScrappJoueur:
                 return self.transfermarkt_html_joueur
             else: 
                 raise Exception(result_http.status_code)
-        except Exception as excepetion:
-            logging.error(f"[ERROR] Un problème a été rencontré lors de la récupération de l'HTML du joueur TransferMarkt n°{self.id_joueur_transfermarkt} : {excepetion}  ")
+        except Exception as exception:
+            logging.error(f"[ERROR] Un problème a été rencontré lors de la récupération de l'HTML du joueur TransferMarkt n°{self.id_joueur_transfermarkt} : {exception}  ")
+            return None
+    
+    """
+        Fonction qui récupère le header du joueur sur sa page TransferMarkt où est notamment son nom et son prénom "différenciés".
+        Entrée:
+        Sortie:
+            - self.transfermarkt_header_joueur, header du joueur si correctement récupéré sinon None
+    """
+    def getHeaderInfoJoueur(self):
+        try:
+            # Récupération de la div contenant ces infos
+            self.transfermarkt_header_joueur = self.transfermarkt_html_joueur.find("main").find("header", {"class": "data-header"})
             
+            return self.transfermarkt_header_joueur
+        except Exception as exception:
+            logging.error(f"[ERROR] Un problème a été rencontré lors de la récupération du header sur la page du joueur TransferMarkt n°{self.id_joueur_transfermarkt} : {exception}  ")
+            return None
+    
+    def getInfoTableJoueur(self):
+        try:
+            # Récupération de la div contenant les données du joueur (le body de la page du joueur en somme)
+            body = self.transfermarkt_html_joueur.find("div", {"id": "subnavi"}).find_next_sibling("div", {"class": "row"})
+            # Récupération du tableau contenant les informations personnelles du joueur
+            self.transfermarkt_info_table_joueur = body.find("div", {"class": "info-table"})
 
+            return self.transfermarkt_info_table_joueur
+        except Exception as exception:
+            logging.error(f"[ERROR] Un problème a été rencontré lors de la récupération de la 'table' contenant les infos du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
+            return None

@@ -15,7 +15,15 @@ class TestScrappJoueur(unittest.TestCase):
         html = self.scrapp_joueur.getHTML()
         self.assertIsInstance(html, BeautifulSoup)
     
-    
+    def testGetHeaderInfoJoueur(self):
+        html = self.scrapp_joueur.getHTML()
+        header = self.scrapp_joueur.getHeaderInfoJoueur()
+        self.assertIsNotNone(header)
+
+    def testGetInfoTableJoueur(self):
+        html = self.scrapp_joueur.getHTML()
+        info_table = self.scrapp_joueur.getInfoTableJoueur()
+        self.assertIsNotNone(info_table)
 
 if __name__ == '__main__':
     unittest.main()
