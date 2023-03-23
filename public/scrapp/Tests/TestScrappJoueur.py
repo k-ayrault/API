@@ -46,6 +46,11 @@ class TestScrappJoueur(unittest.TestCase):
         nom_complet = self.scrapp_joueur.scrappDateDeNaissance()
         self.assertEqual(nom_complet, "1988-12-19")
 
+    def testScrappNationalite(self):
+        html = self.scrapp_joueur.getHTML()
+        info_table = self.scrapp_joueur.getInfoTableJoueur()
+        nom_complet = self.scrapp_joueur.scrappNationalites()
+        self.assertEqual(nom_complet, ["Chili"])
 
 if __name__ == '__main__':
     unittest.main()

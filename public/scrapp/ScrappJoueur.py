@@ -1,7 +1,6 @@
 from scrapp_func_global import *
 
 
-
 class ScrappJoueur:
 
     # Id TransferMarkt du joueur que l'on scrapp
@@ -30,7 +29,6 @@ class ScrappJoueur:
         Sortie :
             - self.transfermarkt_html_joueur, objet BeautifulSoup de la page du joueur
     """
-
     def getHTML(self):
         try:
             # Requête HTTP vers la page du joueur afin d'avoir le code HTML de cette dernière
@@ -55,7 +53,6 @@ class ScrappJoueur:
         Sortie:
             - self.transfermarkt_header_joueur, header du joueur si correctement récupéré sinon None
     """
-
     def getHeaderInfoJoueur(self):
         try:
             # Récupération de la div contenant ces infos
@@ -74,7 +71,6 @@ class ScrappJoueur:
         Sortie :
             - self.transfermarkt_info_table_joueur, la "table" si correctement récupéré sinon None
     """
-
     def getInfoTableJoueur(self):
         try:
             # Récupération de la div contenant les données du joueur (le body de la page du joueur en somme)
@@ -98,7 +94,6 @@ class ScrappJoueur:
             - prenom, Prénom du joueur
             - ou None si la récupération ne s'est pas passé comme prévu
     """
-
     def scrappNomEtPrenom(self):
         try:
             nom, prenom = "", ""
@@ -130,7 +125,6 @@ class ScrappJoueur:
             - nom_complet, Nom complet du joueur si la récupération s'est déroulé correctement
                 sinon None
     """
-
     def scrappNomComplet(self):
         try:
             nom_complet = ""
@@ -165,7 +159,7 @@ class ScrappJoueur:
     def scrappDateDeNaissance(self):
         # Récupération de la date de naissance du joueur
         try:
-            # Récupération de "noeud" contenant le texte correspondant au label du nom complet afin de récupérer son span
+            # Récupération de "noeud" contenant le texte correspondant au label de la date de naissance afin de récupérer son span
             span_label_naissance = self.transfermarkt_info_table_joueur.find(string=re.compile(
                 transfermarkt_naissance_joueur_find))
 
@@ -185,12 +179,48 @@ class ScrappJoueur:
                 # Récupération de la date de naissance au format ISO8601
                 date_iso_naissance = date_naissance.isoformat()
 
-
                 return date_iso_naissance
             else:
                 raise Exception(
                     f"Le label '{transfermarkt_naissance_joueur_find}' est introuvable dans la table d'info")
         except Exception as exception:
             logging.error(
-                f"[ERROR] Un problème a été rencontré lors de la récupération du nom complet du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
+                f"[ERROR] Un problème a été rencontré lors de la récupération de la date de naissance du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
+            return None
+
+    """
+        Fonction qui récupère la/les nationalité(s) dans la table contenant les informations personelles du joueur sur sa page TransferMarkt
+        Entrée :
+        Sortie :
+            - nationalites, tableau contenant les différentes nationalités du joueur avec le nom des pays respectifs
+    """
+    def scrappNationalites(self):
+        # Récupération des nationalités du joueur
+        nationalites = []
+        try:
+            # Récupération du "noeud" contenant le texte correspondant au label des nationnalités du joueur afin de récupérer son span
+            label_nationalite = self.transfermarkt_info_table_joueur.find(
+                string=re.compile(transfermarkt_nationalite_joueur_find))
+            
+            if label_nationalite is not None:
+                # Récupération du span contenant le label afin de récupérer le prochain span contenant les nationalités du joueur
+                span_label_nationalite = label_nationalite.find_parent("span")
+                # Récupération du span contenant les nationalités
+                span_nationalite = span_label_nationalite.find_next_sibling("span")
+                # Récupération des images contenus dans ce span afin de récupérer les logos des pays et ainsi récupérer le nom de ces derniers dans leur span
+                for img in span_nationalite.findAll("img"):
+                    # Récupération du nom du pays
+                    nom_pays = img["alt"]
+                    # Filtrage du nom du pays, afin de le renommer selon certains cas spécifiques
+                    nationalite = triNation(nom_pays)
+                    
+                    nationalites.append(nationalite)
+
+                return nationalites
+            else :
+                raise Exception(
+                    f"Le label '{transfermarkt_nationalite_joueur_find}' est introuvable dans la table d'info")
+        except Exception as exception:
+            logging.error(
+                f"[ERROR] Un problème a été rencontré lors de la récupération de(s) nationalite(s) du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
             return None
