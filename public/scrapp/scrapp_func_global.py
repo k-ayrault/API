@@ -8,7 +8,10 @@ from datetime import datetime
 import validators
 import copy
 import sys
+import locale
 from inspect import currentframe, getframeinfo
+
+locale.setlocale(locale.LC_ALL, 'fr_FR')
 
 transfermarkt_base_url = 'https://www.transfermarkt.fr'
 
