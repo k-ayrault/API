@@ -86,6 +86,30 @@ class ScrappJoueur:
                 f"[ERROR] Un problème a été rencontré lors de la récupération de la 'table' contenant les infos du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
             return None
 
+
+    """
+        Fonction qui récupère le span contenant la valeur correspondant au label en entrée
+        Entrée : 
+            - label_text, texte du "label" correspondant à la valeur que l'on souhaite récupérer
+        Sortie :
+            - span, le span contenant la valeur correspondant au label en entrée 
+                sinon lève une exception
+    """
+    def getSpanValeurDansInfoTableViaLabel(self, label_text):
+        # Récupération du "noeud" contenant le texte correspondant au label afin de récupérer son span
+        label = self.transfermarkt_info_table_joueur.find(string=re.compile(label_text))
+        if label is not None :
+            # Récupération du span contenant le label afin de récupérer le prochain span qui contient la valeur recherché
+            span_label = label.find_parent("span")
+            # Récupération du span contenant la valeur recherché
+            span = span_label.find_next_sibling("span")
+
+            return span
+        else:
+            raise Exception(
+                f"Le label '{label_text}' est introuvable dans la table d'info")
+        
+
     """
         Fonction qui récupère le nom et le prénom du joueur via le header de sa page TransferMarkt
         Entrée : 
@@ -127,24 +151,14 @@ class ScrappJoueur:
     """
     def scrappNomComplet(self):
         try:
-            nom_complet = ""
-            # Récupération de "noeud" contenant le texte correspondant au label du nom complet afin de récupérer son span
-            label_nom_complet = self.transfermarkt_info_table_joueur.find(
-                string=re.compile(transfermarkt_nom_joueur_find))
+            # Récupération du span contenant le nom complet du joueur
+            span_nom_complet = self.getSpanValeurDansInfoTableViaLabel(transfermarkt_nom_joueur_find)
+            
+            # Récupération du texte du span, donc le nom complet
+            nom_complet = span_nom_complet.text.strip()
 
-            if label_nom_complet is not None:
-                # Récupération du span contenant le label afin de récupérer le prochain span qui contient le nom complet
-                span_label_nom_complet = label_nom_complet.find_parent("span")
-                # Récupération du span contenant le nom complet
-                span_nom_complet = span_label_nom_complet.find_next_sibling(
-                    "span")
-                # Récupération du texte du span, donc le nom complet
-                nom_complet = span_nom_complet.text.strip()
-
-                return nom_complet
-            else:
-                raise Exception(
-                    f"Le label '{transfermarkt_nom_joueur_find}' est introuvable dans la table d'info")
+            return nom_complet
+            
         except Exception as exception:
             logging.error(
                 f"[ERROR] Un problème a été rencontré lors de la récupération du nom complet du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
@@ -159,30 +173,17 @@ class ScrappJoueur:
     def scrappDateDeNaissance(self):
         # Récupération de la date de naissance du joueur
         try:
-            # Récupération de "noeud" contenant le texte correspondant au label de la date de naissance afin de récupérer son span
-            span_label_naissance = self.transfermarkt_info_table_joueur.find(string=re.compile(
-                transfermarkt_naissance_joueur_find))
-
-            if span_label_naissance is not None:
-
-                # Récupération du span contenant le label afin de récupérer le prochain span qui contient la date de naissance
-                span_label_naissance = span_label_naissance.find_parent(
-                    "span")
-                # Récupération du span contenant la date de naissance
-                span_naissance = span_label_naissance.find_next_sibling(
-                    "span")
-                # Récupération du texte du span, donc la date de naissance
-                text_naissance = span_naissance.text.strip()
-                # Transformation du texte correspondant à la date de naissance en datetime puis date
-                date_naissance = datetime.strptime(
-                    text_naissance, '%d %b %Y').date()
-                # Récupération de la date de naissance au format ISO8601
-                date_iso_naissance = date_naissance.isoformat()
-
-                return date_iso_naissance
-            else:
-                raise Exception(
-                    f"Le label '{transfermarkt_naissance_joueur_find}' est introuvable dans la table d'info")
+            # Récupération du span contenant le nom complet du joueur
+            span_naissance = self.getSpanValeurDansInfoTableViaLabel(transfermarkt_naissance_joueur_find)
+            # Récupération du texte du span, donc la date de naissance
+            text_naissance = span_naissance.text.strip()
+            # Transformation du texte correspondant à la date de naissance en datetime puis date
+            date_naissance = datetime.strptime(text_naissance, '%d %b %Y').date()
+            # Récupération de la date de naissance au format ISO8601
+            date_iso_naissance = date_naissance.isoformat()
+            
+            return date_iso_naissance
+        
         except Exception as exception:
             logging.error(
                 f"[ERROR] Un problème a été rencontré lors de la récupération de la date de naissance du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
@@ -198,29 +199,23 @@ class ScrappJoueur:
         # Récupération des nationalités du joueur
         nationalites = []
         try:
-            # Récupération du "noeud" contenant le texte correspondant au label des nationnalités du joueur afin de récupérer son span
-            label_nationalite = self.transfermarkt_info_table_joueur.find(
-                string=re.compile(transfermarkt_nationalite_joueur_find))
 
-            if label_nationalite is not None:
-                # Récupération du span contenant le label afin de récupérer le prochain span contenant les nationalités du joueur
-                span_label_nationalite = label_nationalite.find_parent("span")
-                # Récupération du span contenant les nationalités
-                span_nationalite = span_label_nationalite.find_next_sibling(
-                    "span")
-                # Récupération des images contenus dans ce span afin de récupérer les logos des pays et ainsi récupérer le nom de ces derniers dans leur span
-                for img in span_nationalite.findAll("img"):
-                    # Récupération du nom du pays
-                    nom_pays = img["alt"]
-                    # Filtrage du nom du pays, afin de le renommer selon certains cas spécifiques
-                    nationalite = triNation(nom_pays)
+            # Récupération du span contenant les nationalités
+            span_nationalite = self.getSpanValeurDansInfoTableViaLabel(transfermarkt_nationalite_joueur_find)
 
-                    nationalites.append(nationalite)
+            # Récupération des images contenus dans ce span afin de récupérer les logos des pays et ainsi récupérer le nom de ces derniers dans leur span
+            for img in span_nationalite.findAll("img"):
+                nationalite = ""
+                # Récupération du nom du pays
+                nom_pays = img["alt"]
+                # Filtrage du nom du pays, afin de le renommer selon certains cas spécifiques
+                nationalite = triNation(nom_pays)
 
-                return nationalites
-            else:
-                raise Exception(
-                    f"Le label '{transfermarkt_nationalite_joueur_find}' est introuvable dans la table d'info")
+                if nationalite :
+                    nationalites.append(nationalite)    
+
+            return nationalites
+        
         except Exception as exception:
             logging.error(
                 f"[ERROR] Un problème a été rencontré lors de la récupération de(s) nationalite(s) du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
@@ -235,23 +230,14 @@ class ScrappJoueur:
     """
     def scrappPiedFort(self):
         try:
-            # Récupération de "noeud" contenant le texte correspondant au label du pied fort afin de récupérer son span
-            label_pied_fort = self.transfermarkt_info_table_joueur.find(
-                string=re.compile(transfermarkt_pied_joueur_find))
-            
-            if label_pied_fort is not None:
-                # Récupération du span contenant le label afin de récupérer le prochain span qui contient le pied fort 
-                span_label_pied_fort = label_pied_fort.find_parent("span")
-                # Récupération du span contenant le pied fort
-                span_pied_fort = span_label_pied_fort.find_next_sibling("span")
-                # Récupération du texte du span, donc le pied fort
-                pied_fort = span_pied_fort.text.strip()
+            # Récupération du span contenant le pied fort 
+            span_pied_fort = self.getSpanValeurDansInfoTableViaLabel(transfermarkt_pied_joueur_find)
 
-                return pied_fort
-            else:
-                raise Exception(
-                    f"Le label '{transfermarkt_pied_joueur_find}' est introuvable dans la table d'info")
+            # Récupération du texte du span, donc le pied fort
+            pied_fort = span_pied_fort.text.strip()
 
+            return pied_fort
+        
         except Exception as exception:
             logging.error(
                 f"[ERROR] Un problème a été rencontré lors de la récupération du pied fort du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
@@ -266,22 +252,15 @@ class ScrappJoueur:
     """
     def scrappTaile(self):
         try:
-            # Récupération du "noeud" contenant le texte correspondant au label de la taille afin de récupérer son span
-            label_taille = self.transfermarkt_info_table_joueur.find(string=re.compile(transfermarkt_taille_joueur_find))
-            if label_taille is not None :
-                # Récupération du span contenant le label afin de récupérer le prochain span qui contien la taille
-                span_label_taille = label_taille.find_parent("span")
-                # Récupération du span contenant la taille
-                span_taille = span_label_taille.find_next_sibling("span")
-                # Récupération du texte du span, donc la taille
-                taille_texte = span_taille.text.strip()
-                # Ne récupère que les chiffres pour avoir le nombre de centimètre du joueur (son corp ^^)
-                taille = re.sub('\D', '', taille_texte)
+            # Récupération du span contenant la taille 
+            span_taille = self.getSpanValeurDansInfoTableViaLabel(transfermarkt_taille_joueur_find)
 
-                return taille
-            else:
-                raise Exception(
-                    f"Le label '{transfermarkt_taille_joueur_find}' est introuvable dans la table d'info")
+            # Récupération du texte du span, donc la taille
+            taille_texte = span_taille.text.strip()
+            # Ne récupère que les chiffres pour avoir le nombre de centimètre du joueur (son corp ^^)
+            taille = re.sub('\D', '', taille_texte)
+
+            return taille
         except Exception as exception:
             logging.error(
                 f"[ERROR] Un problème a été rencontré lors de la récupération de la taille du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
