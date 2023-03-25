@@ -52,5 +52,12 @@ class TestScrappJoueur(unittest.TestCase):
         nom_complet = self.scrapp_joueur.scrappNationalites()
         self.assertEqual(nom_complet, ["Chili"])
 
+        
+    def testScrappPiedFort(self):
+        html = self.scrapp_joueur.getHTML()
+        info_table = self.scrapp_joueur.getInfoTableJoueur()
+        pied_fort = self.scrapp_joueur.scrappPiedFort()
+        self.assertEqual(pied_fort, "droit")
+
 if __name__ == '__main__':
     unittest.main()

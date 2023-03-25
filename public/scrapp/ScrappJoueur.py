@@ -201,26 +201,59 @@ class ScrappJoueur:
             # Récupération du "noeud" contenant le texte correspondant au label des nationnalités du joueur afin de récupérer son span
             label_nationalite = self.transfermarkt_info_table_joueur.find(
                 string=re.compile(transfermarkt_nationalite_joueur_find))
-            
+
             if label_nationalite is not None:
                 # Récupération du span contenant le label afin de récupérer le prochain span contenant les nationalités du joueur
                 span_label_nationalite = label_nationalite.find_parent("span")
                 # Récupération du span contenant les nationalités
-                span_nationalite = span_label_nationalite.find_next_sibling("span")
+                span_nationalite = span_label_nationalite.find_next_sibling(
+                    "span")
                 # Récupération des images contenus dans ce span afin de récupérer les logos des pays et ainsi récupérer le nom de ces derniers dans leur span
                 for img in span_nationalite.findAll("img"):
                     # Récupération du nom du pays
                     nom_pays = img["alt"]
                     # Filtrage du nom du pays, afin de le renommer selon certains cas spécifiques
                     nationalite = triNation(nom_pays)
-                    
+
                     nationalites.append(nationalite)
 
                 return nationalites
-            else :
+            else:
                 raise Exception(
                     f"Le label '{transfermarkt_nationalite_joueur_find}' est introuvable dans la table d'info")
         except Exception as exception:
             logging.error(
                 f"[ERROR] Un problème a été rencontré lors de la récupération de(s) nationalite(s) du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
             return None
+
+    """
+        Fonction qui récupère le pied fort dans la table contenant les informations personelles du joueur sur sa page TransferMarkt
+        Entrée :
+        Sortie :
+            - pied_fort, pied fort du joueur si la récupération s'est déroulé correctement 
+                sinon None
+    """
+    def scrappPiedFort(self):
+        try:
+            # Récupération de "noeud" contenant le texte correspondant au label du pied fort afin de récupérer son span
+            label_pied_fort = self.transfermarkt_info_table_joueur.find(
+                string=re.compile(transfermarkt_pied_joueur_find))
+            
+            if label_pied_fort is not None:
+                # Récupération du span contenant le label afin de récupérer le prochain span qui contient le pied fort 
+                span_label_pied_fort = label_pied_fort.find_parent("span")
+                # Récupération du span contenant le pied fort
+                span_pied_fort = span_label_pied_fort.find_next_sibling("span")
+                # Récupération du texte du span, donc le pied fort
+                pied_fort = span_pied_fort.text.strip()
+
+                return pied_fort
+            else:
+                raise Exception(
+                    f"Le label '{transfermarkt_pied_joueur_find}' est introuvable dans la table d'info")
+
+        except Exception as exception:
+            logging.error(
+                f"[ERROR] Un problème a été rencontré lors de la récupération du pied fort du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
+            return None
+
