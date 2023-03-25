@@ -265,3 +265,23 @@ class ScrappJoueur:
             logging.error(
                 f"[ERROR] Un problème a été rencontré lors de la récupération de la taille du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
             return None
+    
+    """
+        Fonction qui récupère la taille dans la table contenant les informations personnelles du joueur sur sa page TransferMarkt
+        Entrée :
+        Sortie : 
+            - equipementier, l'équipementier actuel du joueur si la récupération s'est déroulé correctement
+                sinon None
+    """
+    def scrappEquipementierActuel(self):
+        try:
+            # Récupération du span contenant l'équipementier
+            span_equipementier = self.getSpanValeurDansInfoTableViaLabel(transfermarkt_equipementier_joueur_find)
+            # Récupération du texte du span, donc de l'équipementier
+            equipementier = span_equipementier.text.strip()
+
+            return equipementier
+        except Exception as exception :
+            logging.error(
+                f"[ERROR] Un problème a été rencontré lors de la récupération de l'équipementier du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
+            return None

@@ -64,5 +64,11 @@ class TestScrappJoueur(unittest.TestCase):
         taille = self.scrapp_joueur.scrappTaile()
         self.assertEqual(taille, "169")
 
+    def testScrappTaille(self):
+        html = self.scrapp_joueur.getHTML()
+        info_table = self.scrapp_joueur.getInfoTableJoueur()
+        equipementier = self.scrapp_joueur.scrappEquipementierActuel()
+        self.assertEqual(equipementier, "Nike")
+
 if __name__ == '__main__':
     unittest.main()
