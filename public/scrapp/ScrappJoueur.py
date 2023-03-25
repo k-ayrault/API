@@ -257,3 +257,32 @@ class ScrappJoueur:
                 f"[ERROR] Un problème a été rencontré lors de la récupération du pied fort du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
             return None
 
+    """
+        Fonction qui récupère la taille dans la table contenant les informations personnelles du joueur sur sa page TransferMarkt
+        Entrée :
+        Sortie :
+            - taille, taille du joueur si la récupération s'est déroulé correctement
+                sinon None
+    """
+    def scrappTaile(self):
+        try:
+            # Récupération du "noeud" contenant le texte correspondant au label de la taille afin de récupérer son span
+            label_taille = self.transfermarkt_info_table_joueur.find(string=re.compile(transfermarkt_taille_joueur_find))
+            if label_taille is not None :
+                # Récupération du span contenant le label afin de récupérer le prochain span qui contien la taille
+                span_label_taille = label_taille.find_parent("span")
+                # Récupération du span contenant la taille
+                span_taille = span_label_taille.find_next_sibling("span")
+                # Récupération du texte du span, donc la taille
+                taille_texte = span_taille.text.strip()
+                # Ne récupère que les chiffres pour avoir le nombre de centimètre du joueur (son corp ^^)
+                taille = re.sub('\D', '', taille_texte)
+
+                return taille
+            else:
+                raise Exception(
+                    f"Le label '{transfermarkt_taille_joueur_find}' est introuvable dans la table d'info")
+        except Exception as exception:
+            logging.error(
+                f"[ERROR] Un problème a été rencontré lors de la récupération de la taille du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
+            return None
