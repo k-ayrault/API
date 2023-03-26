@@ -38,7 +38,7 @@ def getNomPrenom(header):
 def getNomComplet(info_table):
     nom_complet = ""
     label_nom_complet = info_table.find(
-        text=re.compile(transfermarkt_nom_joueur_find))
+        text=re.compile(TM_JOUEUR_NOM_COMPLET_LABEL_TEXT))
     if label_nom_complet is not None:
         span_nom_complet = label_nom_complet.find_parent().find_next_sibling()
         nom_complet = span_nom_complet.text

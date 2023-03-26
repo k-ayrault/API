@@ -4,113 +4,113 @@ from scrapp_func_global import *
 class ScrappJoueur:
 
     # Id TransferMarkt du joueur que l'on scrapp
-    id_joueur_transfermarkt = -1
+    idJoueurTransferMarkt = -1
 
     # Lien TransferMarkt du joueur que l'on scrapp
-    lien_joueur_transfermarkt = ""
+    lienJoueurTransferMarkt = ""
 
     # HTML de la page TransferMarkt du joueur que l'on scrapp
-    transfermarkt_html_joueur = None
+    htmlTransferMarktJoueur = None
 
     # Header de la page du joueur
-    transfermarkt_header_joueur = None
+    headerTransferMarktJoueur = None
 
     # Table HTML où sont stockée les informations "personnelles" du joueur
-    transfermarkt_info_table_joueur = None
+    infoTableTransferMarktJoueur = None
 
     # Date de fin du contrat actuel du joueur
-    date_fin_contrat_actuel = None
+    dateFinContratActuel = None
 
-    def __init__(self, id_joueur_transfermarkt, lien_joueur_transfermarkt):
-        self.id_joueur_transfermarkt = id_joueur_transfermarkt
-        self.lien_joueur_transfermarkt = lien_joueur_transfermarkt.replace(
+    def __init__(self, idJoueurTransferMarkt, lienJoueurTransferMarkt):
+        self.idJoueurTransferMarkt = idJoueurTransferMarkt
+        self.lienJoueurTransferMarkt = lienJoueurTransferMarkt.replace(
             transfermarkt_url_replace, transfermarkt_info_joueur)
 
     """
         Fonction qui récupère l'HTML de la page TransferMarkt du joueur et le BeautifulSoup
         Entrée :
         Sortie :
-            - self.transfermarkt_html_joueur, objet BeautifulSoup de la page du joueur
+            - self.htmlTransferMarktJoueur, objet BeautifulSoup de la page du joueur
     """
     def getHTML(self):
         try:
             # Requête HTTP vers la page du joueur afin d'avoir le code HTML de cette dernière
-            result_http = requests.get(
-                self.lien_joueur_transfermarkt, headers=headers)
+            resultHttp = requests.get(
+                self.lienJoueurTransferMarkt, headers=headers)
 
             # Si la requête s'est passé correctement, on récupère l'objet BeautifulSoup de l'HTML de la page sinon on lève une exception
-            if result_http.ok:
-                self.transfermarkt_html_joueur = BeautifulSoup(
-                    result_http.text, "html.parser")
-                return self.transfermarkt_html_joueur
+            if resultHttp.ok:
+                self.htmlTransferMarktJoueur = BeautifulSoup(
+                    resultHttp.text, "html.parser")
+                return self.htmlTransferMarktJoueur
             else:
-                raise Exception(result_http.status_code)
+                raise Exception(resultHttp.status_code)
         except Exception as exception:
             logging.error(
-                f"[ERROR] Un problème a été rencontré lors de la récupération de l'HTML du joueur TransferMarkt n°{self.id_joueur_transfermarkt} : {exception}  ")
+                f"[ERROR] Un problème a été rencontré lors de la récupération de l'HTML du joueur TransferMarkt n°{self.idJoueurTransferMarkt} : {exception}  ")
             return None
 
     """
         Fonction qui récupère le header du joueur sur sa page TransferMarkt où est notamment son nom et son prénom "différenciés".
         Entrée:
         Sortie:
-            - self.transfermarkt_header_joueur, header du joueur si correctement récupéré sinon None
+            - self.headerTransferMarktJoueur, header du joueur si correctement récupéré sinon None
     """
     def getHeaderInfoJoueur(self):
         try:
             # Récupération de la div contenant ces infos
-            self.transfermarkt_header_joueur = self.transfermarkt_html_joueur.find(
+            self.headerTransferMarktJoueur = self.htmlTransferMarktJoueur.find(
                 "main").find("header", {"class": "data-header"})
 
-            return self.transfermarkt_header_joueur
+            return self.headerTransferMarktJoueur
         except Exception as exception:
             logging.error(
-                f"[ERROR] Un problème a été rencontré lors de la récupération du header sur la page du joueur TransferMarkt n°{self.id_joueur_transfermarkt} : {exception}  ")
+                f"[ERROR] Un problème a été rencontré lors de la récupération du header sur la page du joueur TransferMarkt n°{self.idJoueurTransferMarkt} : {exception}  ")
             return None
 
     """
         Fonction qui récupère la "table" contenant les informations personnelles du joueur sur sa page TransferMarkt
         Entrée :
         Sortie :
-            - self.transfermarkt_info_table_joueur, la "table" si correctement récupéré sinon None
+            - self.infoTableTransferMarktJoueur, la "table" si correctement récupéré sinon None
     """
     def getInfoTableJoueur(self):
         try:
             # Récupération de la div contenant les données du joueur (le body de la page du joueur en somme)
-            body = self.transfermarkt_html_joueur.find(
+            body = self.htmlTransferMarktJoueur.find(
                 "div", {"id": "subnavi"}).find_next_sibling("div", {"class": "row"})
             # Récupération du tableau contenant les informations personnelles du joueur
-            self.transfermarkt_info_table_joueur = body.find(
+            self.infoTableTransferMarktJoueur = body.find(
                 "div", {"class": "info-table"})
 
-            return self.transfermarkt_info_table_joueur
+            return self.infoTableTransferMarktJoueur
         except Exception as exception:
             logging.error(
-                f"[ERROR] Un problème a été rencontré lors de la récupération de la 'table' contenant les infos du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
+                f"[ERROR] Un problème a été rencontré lors de la récupération de la 'table' contenant les infos du joueur {self.idJoueurTransferMarkt} sur sa page TransferMarkt : {exception}  ")
             return None
 
 
     """
         Fonction qui récupère le span contenant la valeur correspondant au label en entrée
         Entrée : 
-            - label_text, texte du "label" correspondant à la valeur que l'on souhaite récupérer
+            - labelText, texte du "label" correspondant à la valeur que l'on souhaite récupérer
         Sortie :
             - span, le span contenant la valeur correspondant au label en entrée 
                 sinon lève une exception
     """
-    def getSpanValeurDansInfoTableViaLabel(self, label_text):
+    def getSpanValeurDansInfoTableViaLabel(self, labelText):
         # Récupération du "noeud" contenant le texte correspondant au label afin de récupérer son span
-        label = self.transfermarkt_info_table_joueur.find(string=re.compile(label_text))
+        label = self.infoTableTransferMarktJoueur.find(string=re.compile(labelText))
         if label is not None :
             # Récupération du span contenant le label afin de récupérer le prochain span qui contient la valeur recherché
-            span_label = label.find_parent("span")
+            spanLabel = label.find_parent("span")
             # Récupération du span contenant la valeur recherché
-            span = span_label.find_next_sibling("span")
+            span = spanLabel.find_next_sibling("span")
 
             return span
         else:
             raise Exception(
-                f"Le label '{label_text}' est introuvable dans la table d'info")
+                f"Le label '{labelText}' est introuvable dans la table d'info")
         
 
     """
@@ -125,71 +125,71 @@ class ScrappJoueur:
         try:
             nom, prenom = "", ""
             # Récupération du "titre" du nom/prénom du joueur
-            h1_name_joueur = self.transfermarkt_header_joueur.find(
+            h1NomJoueur = self.headerTransferMarktJoueur.find(
                 "div", {"class": "data-header__headline-container"}).find("h1")
             # Suppression du numéro du joueur dans ce titre
-            span_numero_joueur = h1_name_joueur.find(
+            spanNumeroJoueur = h1NomJoueur.find(
                 "span", {"class": "data-header__shirt-number"})
-            if span_numero_joueur is not None:
-                span_numero_joueur.decompose()
+            if spanNumeroJoueur is not None:
+                spanNumeroJoueur.decompose()
             # Récupération du nom du joueur présent dans la balise <strong>
-            nom = h1_name_joueur.find("strong").text
+            nom = h1NomJoueur.find("strong").text
             # Suppression du nom dans le titre afin de n'avoir plus que le prénom
-            h1_name_joueur.find("strong").decompose()
+            h1NomJoueur.find("strong").decompose()
             # Récupération du prénom qui est présent dans le reste du titre
-            prenom = h1_name_joueur.text.strip()
+            prenom = h1NomJoueur.text.strip()
 
             return nom, prenom
         except Exception as exception:
             logging.error(
-                f"[ERROR] Un problème a été rencontré lors de la récupération du nom et prénom du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
+                f"[ERROR] Un problème a été rencontré lors de la récupération du nom et prénom du joueur {self.idJoueurTransferMarkt} sur sa page TransferMarkt : {exception}  ")
             return None
 
     """
         Fonction qui récupère le nom complet dans la table contenant les informations personnelles du joueur sur sa page TransferMarkt
         Entrée :
         Sortie :
-            - nom_complet, Nom complet du joueur si la récupération s'est déroulé correctement
+            - nomComplet, Nom complet du joueur si la récupération s'est déroulé correctement
                 sinon None
     """
     def scrappNomComplet(self):
         try:
             # Récupération du span contenant le nom complet du joueur
-            span_nom_complet = self.getSpanValeurDansInfoTableViaLabel(transfermarkt_nom_joueur_find)
+            spanNomComplet = self.getSpanValeurDansInfoTableViaLabel(labelText=TM_JOUEUR_NOM_COMPLET_LABEL_TEXT)
             
             # Récupération du texte du span, donc le nom complet
-            nom_complet = span_nom_complet.text.strip()
+            nomComplet = spanNomComplet.text.strip()
 
-            return nom_complet
+            return nomComplet
             
         except Exception as exception:
             logging.error(
-                f"[ERROR] Un problème a été rencontré lors de la récupération du nom complet du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
+                f"[ERROR] Un problème a été rencontré lors de la récupération du nom complet du joueur {self.idJoueurTransferMarkt} sur sa page TransferMarkt : {exception}  ")
             return None
 
     """
         Fonction qui récupère la date de naissance dans la table contenant les informations personelles du joueur sur sa page TransferMarkt et la renvoie au format ISO8601
         Entrée : 
         Sortie : 
-            - date_iso_naissance, date de naissance du joueur au format ISO8601
+            - dateIsoNaissance, date de naissance du joueur au format ISO8601
     """
     def scrappDateDeNaissance(self):
         # Récupération de la date de naissance du joueur
         try:
             # Récupération du span contenant le nom complet du joueur
-            span_naissance = self.getSpanValeurDansInfoTableViaLabel(transfermarkt_naissance_joueur_find)
+            spanNaissance = self.getSpanValeurDansInfoTableViaLabel(labelText=TM_JOUEUR_NAISSANCE_LABEL_TEXT)
             # Récupération du texte du span, donc la date de naissance
-            text_naissance = span_naissance.text.strip()
+            textNaissance = spanNaissance.text.strip()
             # Transformation du texte correspondant à la date de naissance en datetime puis date
-            date_naissance = datetime.strptime(text_naissance, '%d %b %Y').date()
+            dateNaissance = datetime.strptime(textNaissance,'%d %b %Y').date()
             # Récupération de la date de naissance au format ISO8601
-            date_iso_naissance = date_naissance.isoformat()
+            dateIsoNaissance = dateNaissance.isoformat()
             
-            return date_iso_naissance
+            return dateIsoNaissance
         
         except Exception as exception:
             logging.error(
-                f"[ERROR] Un problème a été rencontré lors de la récupération de la date de naissance du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
+                f"[ERROR] Un problème a été rencontré lors de la récupération de la date de naissance du joueur {self.idJoueurTransferMarkt} sur sa page TransferMarkt : {exception}  ")
             return None
 
     """
@@ -204,15 +204,15 @@ class ScrappJoueur:
         try:
 
             # Récupération du span contenant les nationalités
-            span_nationalite = self.getSpanValeurDansInfoTableViaLabel(transfermarkt_nationalite_joueur_find)
+            spanNationalite = self.getSpanValeurDansInfoTableViaLabel(labelText=TM_JOUEUR_NATIONALITES_LABEL_TEXT)
 
             # Récupération des images contenus dans ce span afin de récupérer les logos des pays et ainsi récupérer le nom de ces derniers dans leur span
-            for img in span_nationalite.findAll("img"):
+            for imgNationalite in spanNationalite.findAll("img"):
                 nationalite = ""
                 # Récupération du nom du pays
-                nom_pays = img["alt"]
+                nomPays = imgNationalite["alt"]
                 # Filtrage du nom du pays, afin de le renommer selon certains cas spécifiques
-                nationalite = triNation(nom_pays)
+                nationalite = triNation(nomPays)
 
                 if nationalite :
                     nationalites.append(nationalite)    
@@ -221,29 +221,29 @@ class ScrappJoueur:
         
         except Exception as exception:
             logging.error(
-                f"[ERROR] Un problème a été rencontré lors de la récupération de(s) nationalite(s) du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
+                f"[ERROR] Un problème a été rencontré lors de la récupération de(s) nationalite(s) du joueur {self.idJoueurTransferMarkt} sur sa page TransferMarkt : {exception}  ")
             return None
 
     """
         Fonction qui récupère le pied fort dans la table contenant les informations personelles du joueur sur sa page TransferMarkt
         Entrée :
         Sortie :
-            - pied_fort, pied fort du joueur si la récupération s'est déroulé correctement 
+            - piedFort, pied fort du joueur si la récupération s'est déroulé correctement 
                 sinon None
     """
     def scrappPiedFort(self):
         try:
             # Récupération du span contenant le pied fort 
-            span_pied_fort = self.getSpanValeurDansInfoTableViaLabel(transfermarkt_pied_joueur_find)
+            spanPiedFort = self.getSpanValeurDansInfoTableViaLabel(labelText=TM_JOUEUR_PIED_FORT_LABEL_TEXT)
 
             # Récupération du texte du span, donc le pied fort
-            pied_fort = span_pied_fort.text.strip()
+            piedFort = spanPiedFort.text.strip()
 
-            return pied_fort
+            return piedFort
         
         except Exception as exception:
             logging.error(
-                f"[ERROR] Un problème a été rencontré lors de la récupération du pied fort du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
+                f"[ERROR] Un problème a été rencontré lors de la récupération du pied fort du joueur {self.idJoueurTransferMarkt} sur sa page TransferMarkt : {exception}  ")
             return None
 
     """
@@ -256,17 +256,17 @@ class ScrappJoueur:
     def scrappTaile(self):
         try:
             # Récupération du span contenant la taille 
-            span_taille = self.getSpanValeurDansInfoTableViaLabel(transfermarkt_taille_joueur_find)
+            spanTaille = self.getSpanValeurDansInfoTableViaLabel(labelText=TM_JOUEUR_TAILLE_LABEL_TEXT)
 
             # Récupération du texte du span, donc la taille
-            taille_texte = span_taille.text.strip()
+            tailleText = spanTaille.text.strip()
             # Ne récupère que les chiffres pour avoir le nombre de centimètre du joueur (son corp ^^)
-            taille = re.sub('\D', '', taille_texte)
+            taille = re.sub('\D', '', tailleText)
 
             return taille
         except Exception as exception:
             logging.error(
-                f"[ERROR] Un problème a été rencontré lors de la récupération de la taille du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
+                f"[ERROR] Un problème a été rencontré lors de la récupération de la taille du joueur {self.idJoueurTransferMarkt} sur sa page TransferMarkt : {exception}  ")
             return None
     
     """
@@ -279,70 +279,70 @@ class ScrappJoueur:
     def scrappEquipementierActuel(self):
         try:
             # Récupération du span contenant l'équipementier
-            span_equipementier = self.getSpanValeurDansInfoTableViaLabel(transfermarkt_equipementier_joueur_find)
+            spanEquipementier = self.getSpanValeurDansInfoTableViaLabel(labelText=TM_JOUEUR_EQUIPEMENTIER_LABEL_TEXT)
             # Récupération du texte du span, donc de l'équipementier
-            equipementier = span_equipementier.text.strip()
+            equipementier = spanEquipementier.text.strip()
 
             return equipementier
         except Exception as exception :
             logging.error(
-                f"[ERROR] Un problème a été rencontré lors de la récupération de l'équipementier du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
+                f"[ERROR] Un problème a été rencontré lors de la récupération de l'équipementier du joueur {self.idJoueurTransferMarkt} sur sa page TransferMarkt : {exception}  ")
             return None
 
     """
         Fonction qui récupère la/les position(s) principale(s) et secondaire(s) du joueur sur sa page TransferMarkt
         Entrée :
         Sortie : 
-            - positions_principales, tableau avec les identifiants TransferMarkt des positions principales du joueur
-            - positions_secondaires, tableau avec les identifiants TransferMarkt des positions secondaires du joueur
+            - positionsPrincipales, tableau avec les identifiants TransferMarkt des positions principales du joueur
+            - positionsSecondaires, tableau avec les identifiants TransferMarkt des positions secondaires du joueur
             Tout cela si la récupération se passe bien, sinon None 
     """
     def scrappPositions(self):
-        positions_principales = []
-        positions_secondaires = []
+        positionsPrincipales = []
+        positionsSecondaires = []
         try :
             # Récupération de la div contenant les différentes positions du joueur (point sur le terrain)
-            box_positions = self.transfermarkt_html_joueur.find("div", {"class": "detail-position__matchfield"})
+            boxPositions = self.htmlTransferMarktJoueur.find("div", {"class": "detail-position__matchfield"})
 
 
-            span_positions = box_positions.findAll("span", { "class" : "position" })
+            spanPositions = boxPositions.findAll("span", { "class" : "position" })
 
-            for span_position in span_positions :
+            for spanPosition in spanPositions :
                 # On récupère le type de la position que l'on traite
-                if "position__primary" in span_position["class"] : # Position principale
-                    class_type_position = "position__primary"
-                elif "position__secondary" in span_position["class"] : # Position secondaire
-                    class_type_position = "position__secondary"
+                if "position__primary" in spanPosition["class"] : # Position principale
+                    classTypePosition = "position__primary"
+                elif "position__secondary" in spanPosition["class"] : # Position secondaire
+                    classTypePosition = "position__secondary"
                 else : 
                     continue
 
                 # Création du début de la class contenant l'identifiant de la position
-                debut_class_position = class_type_position + "--"
+                debutClassPosition = classTypePosition + "--"
                 
                 # Récupération de la class contenant l'identifiant de la position
-                class_position = [
-                    class_type for class_type in span_position["class"]
-                    if debut_class_position in class_type
+                classPosition = [
+                    class_type for class_type in spanPosition["class"]
+                    if debutClassPosition in class_type
                 ]
                 # Si plus d'une class est retourné pour la class contenant l'identifiant de la position on passe à la prochaine position car pas normal
-                if len(class_position) != 1 :
+                if len(classPosition) != 1 :
                     continue
-                class_position = class_position[0]
+                classPosition = classPosition[0]
                 
                 # Récupération de l'identifiant de la position en supprimant le début de la class
-                position = class_position.replace(debut_class_position, "")
+                position = classPosition.replace(debutClassPosition, "")
 
                 # Ajout de la position dans le bon tableau
-                if class_type_position == "position__primary" :
-                    positions_principales.append(position)
-                elif class_type_position == "position__secondary" :
-                    positions_secondaires.append(position)
+                if classTypePosition == "position__primary" :
+                    positionsPrincipales.append(position)
+                elif classTypePosition == "position__secondary" :
+                    positionsSecondaires.append(position)
             
-            return positions_principales, positions_secondaires
+            return positionsPrincipales, positionsSecondaires
 
         except Exception as exception :
             logging.error(
-                f"[ERROR] Un problème a été rencontré lors de la récupération des postes du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
+                f"[ERROR] Un problème a été rencontré lors de la récupération des postes du joueur {self.idJoueurTransferMarkt} sur sa page TransferMarkt : {exception}  ")
             return None
 
     """
@@ -357,23 +357,23 @@ class ScrappJoueur:
             # Récupération du span contenant la date de fin du contrat actuel du joueur selon s'il est en prêt ou non (le label change)
             try:
                 # Récupération du span contenant la date de fin du contrat actuel du joueur s'il est en prêt
-                span_date_fin_contrat_actuel = self.getSpanValeurDansInfoTableViaLabel(label_text=transfermarkt_fin_contrat_pret_find)
+                spanDateFinContratActuel = self.getSpanValeurDansInfoTableViaLabel(labelText=TM_JOUEUR_PRETE_DATE_FIN_CONTRAT_ACTUEL_LABEL_TEXT)
             except :
                 # Récupération du span contenant la date de fin du contrat actuel du joueur s'il n'est pas en prêt
-                span_date_fin_contrat_actuel = self.getSpanValeurDansInfoTableViaLabel(label_text=transfermarkt_fin_contrat_find)
+                spanDateFinContratActuel = self.getSpanValeurDansInfoTableViaLabel(labelText=TM_JOUEUR_DATE_FIN_CONTRAT_ACTUEL_LABEL_TEXT)
             # Récupération du texte du span, donc la date de fin du contrat
-            date_fin_contrat_actuel_text = span_date_fin_contrat_actuel.text.strip()
+            dateFinContratActuelText = spanDateFinContratActuel.text.strip()
 
             # Transformation du texte correspondant à la date de fin du contrat en datetime puis date
-            date_fin_contrat_actuel = datetime.strptime(date_fin_contrat_actuel_text, '%d %b %Y').date()
+            dateFinContratActuel = datetime.strptime(dateFinContratActuelText, '%d %b %Y').date()
             
             # Récupération de la date de fin du contrat au format ISO8601
-            date_fin_contrat_actuel_iso_format = date_fin_contrat_actuel.isoformat()
+            dateFinContratActuelIsoFormat = dateFinContratActuel.isoformat()
 
-            self.date_fin_contrat_actuel = date_fin_contrat_actuel_iso_format
+            self.dateFinContratActuel = dateFinContratActuelIsoFormat
 
-            return self.date_fin_contrat_actuel
+            return self.dateFinContratActuel
         except Exception as exception :
             logging.error(
-                f"[ERROR] Un problème a été rencontré lors de la récupération de la date de fin du contrat actuel du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
+                f"[ERROR] Un problème a été rencontré lors de la récupération de la date de fin du contrat actuel du joueur {self.idJoueurTransferMarkt} sur sa page TransferMarkt : {exception}  ")
             return None

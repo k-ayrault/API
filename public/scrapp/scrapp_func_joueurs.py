@@ -78,7 +78,7 @@ def getInfoJoueur(joueur_transfermarkt):
 
                 # Récupération de la date de naissance du joueur
                 try:
-                    naissance = info_table.find(text=re.compile(transfermarkt_naissance_joueur_find))
+                    naissance = info_table.find(text=re.compile(TM_JOUEUR_NAISSANCE_LABEL_TEXT))
                     naissance = naissance.find_parent().find_next_sibling().find("a").text
                     naissance = datetime.strptime(naissance.strip(), '%d %b %Y')
                     joueur["date_naissance"] = naissance.date().isoformat()
@@ -91,7 +91,7 @@ def getInfoJoueur(joueur_transfermarkt):
                 # Récupération des nationalités du joueur
                 try:
                     nationalite = info_table.find(
-                        text=re.compile(transfermarkt_nationalite_joueur_find))
+                        text=re.compile(TM_JOUEUR_NATIONALITES_LABEL_TEXT))
                     nationalite = nationalite.find_parent().find_next_sibling()
                     for img in nationalite.findAll("img"):
                         try:
@@ -110,7 +110,7 @@ def getInfoJoueur(joueur_transfermarkt):
 
                 # Récupération du pied fort du joueur
                 try:
-                    pied = info_table.find(text=re.compile(transfermarkt_pied_joueur_find))
+                    pied = info_table.find(text=re.compile(TM_JOUEUR_PIED_FORT_LABEL_TEXT))
                     joueur["pied"] = pied.find_parent().find_next_sibling().text
                 except Exception as e:
                     exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -120,7 +120,7 @@ def getInfoJoueur(joueur_transfermarkt):
 
                 # Récupération de la taille du joueur
                 try:
-                    taille = info_table.find(text=re.compile(transfermarkt_taille_joueur_find))
+                    taille = info_table.find(text=re.compile(TM_JOUEUR_TAILLE_LABEL_TEXT))
                     joueur["taille"] = re.sub('\D', '', taille.find_parent().find_next_sibling().text)
                 except Exception as e:
                     exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -131,7 +131,7 @@ def getInfoJoueur(joueur_transfermarkt):
                 # Récupération de l'équipementier actuel du joueur
                 try:
                     equipementier = info_table.find(
-                        text=re.compile(transfermarkt_equipementier_joueur_find))
+                        text=re.compile(TM_JOUEUR_EQUIPEMENTIER_LABEL_TEXT))
                     joueur["equipementier"] = equipementier.find_parent().find_next_sibling().text
                 except Exception as e:
                     exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -194,10 +194,10 @@ def getInfoJoueur(joueur_transfermarkt):
                 date_fin_contrat = None
                 try:
                     # Récupère la date de fin du contrat avec le club qui prête le joueur (si prêté)
-                    fin_contrat = info_table.find(text=re.compile(transfermarkt_fin_contrat_pret_find))
+                    fin_contrat = info_table.find(text=re.compile(TM_JOUEUR_PRETE_DATE_FIN_CONTRAT_ACTUEL_LABEL_TEXT))
                     # Si le joueur n'est pas prêté, récupère la date de fin du contrat
                     if fin_contrat is None:
-                        fin_contrat = info_table.find(text=re.compile(transfermarkt_fin_contrat_find))
+                        fin_contrat = info_table.find(text=re.compile(TM_JOUEUR_DATE_FIN_CONTRAT_ACTUEL_LABEL_TEXT))
 
                     fin_contrat = fin_contrat.find_parent().find_next_sibling().text
                     try:
@@ -245,7 +245,7 @@ def getInfoJoueur(joueur_transfermarkt):
 
                     # Récupération de la taille du joueur
                     try:
-                        taille = info_table.find(text=re.compile(transfermarkt_taille_joueur_find))
+                        taille = info_table.find(text=re.compile(TM_JOUEUR_TAILLE_LABEL_TEXT))
                         joueur["taille"] = re.sub('\D', '', taille.find_parent().find_next_sibling().text)
                     except Exception as e:
                         exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -256,7 +256,7 @@ def getInfoJoueur(joueur_transfermarkt):
                     # Récupération de l'équipementier actuel du joueur
                     try:
                         equipementier = info_table.find(
-                            text=re.compile(transfermarkt_equipementier_joueur_find))
+                            text=re.compile(TM_JOUEUR_EQUIPEMENTIER_LABEL_TEXT))
                         joueur["equipementier"] = equipementier.find_parent().find_next_sibling().text
                     except Exception as e:
                         exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -318,10 +318,10 @@ def getInfoJoueur(joueur_transfermarkt):
                     # Récupération date de fin du dernier contrat du joueur (çàd celui actuel normalement)
                     try:
                         # Récupère la date de fin du contrat avec le club qui prête le joueur (si prêté)
-                        fin_contrat = info_table.find(text=re.compile(transfermarkt_fin_contrat_pret_find))
+                        fin_contrat = info_table.find(text=re.compile(TM_JOUEUR_PRETE_DATE_FIN_CONTRAT_ACTUEL_LABEL_TEXT))
                         # Si le joueur n'est pas prêté, récupère la date de fin du contrat
                         if fin_contrat is None:
-                            fin_contrat = info_table.find(text=re.compile(transfermarkt_fin_contrat_find))
+                            fin_contrat = info_table.find(text=re.compile(TM_JOUEUR_DATE_FIN_CONTRAT_ACTUEL_LABEL_TEXT))
 
                         fin_contrat = fin_contrat.find_parent().find_next_sibling().text
                         try:
