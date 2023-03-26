@@ -70,5 +70,11 @@ class TestScrappJoueur(unittest.TestCase):
         equipementier = self.scrapp_joueur.scrappEquipementierActuel()
         self.assertEqual(equipementier, "Nike")
 
+    def testScrappPositions(self):
+        html = self.scrapp_joueur.getHTML()
+        positions_principales, positions_secondaires = self.scrapp_joueur.scrappPositions()
+        self.assertEqual(positions_principales, ['14'])
+        self.assertEqual(positions_secondaires, ['11', '12'])
+
 if __name__ == '__main__':
     unittest.main()

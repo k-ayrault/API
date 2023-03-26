@@ -285,3 +285,60 @@ class ScrappJoueur:
             logging.error(
                 f"[ERROR] Un problème a été rencontré lors de la récupération de l'équipementier du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
             return None
+
+    """
+        Fonction qui récupère la/les position(s) principale(s) et secondaire(s) du joueur sur sa page TransferMarkt
+        Entrée :
+        Sortie : 
+            - positions_principales, tableau avec les identifiants TransferMarkt des positions principales du joueur
+            - positions_secondaires, tableau avec les identifiants TransferMarkt des positions secondaires du joueur
+            Tout cela si la récupération se passe bien, sinon None 
+    """
+    def scrappPositions(self):
+        positions_principales = []
+        positions_secondaires = []
+        try :
+            # Récupération de la div contenant les différentes positions du joueur (point sur le terrain)
+            box_positions = self.transfermarkt_html_joueur.find("div", {"class": "detail-position__matchfield"})
+
+
+            span_positions = box_positions.findAll("span", { "class" : "position" })
+
+            for span_position in span_positions :
+                # On récupère le type de la position que l'on traite
+                if "position__primary" in span_position["class"] : # Position principale
+                    class_type_position = "position__primary"
+                elif "position__secondary" in span_position["class"] : # Position secondaire
+                    class_type_position = "position__secondary"
+                else : 
+                    continue
+
+                # Création du début de la class contenant l'identifiant de la position
+                debut_class_position = class_type_position + "--"
+                
+                # Récupération de la class contenant l'identifiant de la position
+                class_position = [
+                    class_type for class_type in span_position["class"]
+                    if debut_class_position in class_type
+                ]
+                # Si plus d'une class est retourné pour la class contenant l'identifiant de la position on passe à la prochaine position car pas normal
+                if len(class_position) != 1 :
+                    continue
+                class_position = class_position[0]
+                
+                # Récupération de l'identifiant de la position en supprimant le début de la class
+                position = class_position.replace(debut_class_position, "")
+
+                # Ajout de la position dans le bon tableau
+                if class_type_position == "position__primary" :
+                    positions_principales.append(position)
+                elif class_type_position == "position__secondary" :
+                    positions_secondaires.append(position)
+            
+            return positions_principales, positions_secondaires
+
+        except Exception as exception :
+            logging.error(
+                f"[ERROR] Un problème a été rencontré lors de la récupération des postes du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
+            return None
+
