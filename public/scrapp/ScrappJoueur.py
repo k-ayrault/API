@@ -18,6 +18,9 @@ class ScrappJoueur:
     # Table HTML où sont stockée les informations "personnelles" du joueur
     transfermarkt_info_table_joueur = None
 
+    # Date de fin du contrat actuel du joueur
+    date_fin_contrat_actuel = None
+
     def __init__(self, id_joueur_transfermarkt, lien_joueur_transfermarkt):
         self.id_joueur_transfermarkt = id_joueur_transfermarkt
         self.lien_joueur_transfermarkt = lien_joueur_transfermarkt.replace(
@@ -342,3 +345,35 @@ class ScrappJoueur:
                 f"[ERROR] Un problème a été rencontré lors de la récupération des postes du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
             return None
 
+    """
+        Fonction qui récupère la date de fin du contrat actuel du joueur dans la table contenant les informations personnelles du joueur sur page TransferMarkt
+        Entrée : 
+        Sortie :
+            - self.date_fin_contrat_actuel, la date de fin du contrat actuel au format ISO8601 si la récupération s'est déroulé correctement 
+                sinon None
+    """
+    def scrappDateFinContratActuel(self):
+        try:
+            # Récupération du span contenant la date de fin du contrat actuel du joueur selon s'il est en prêt ou non (le label change)
+            try:
+                # Récupération du span contenant la date de fin du contrat actuel du joueur s'il est en prêt
+                span_date_fin_contrat_actuel = self.getSpanValeurDansInfoTableViaLabel(label_text=transfermarkt_fin_contrat_pret_find)
+            except :
+                # Récupération du span contenant la date de fin du contrat actuel du joueur s'il n'est pas en prêt
+                span_date_fin_contrat_actuel = self.getSpanValeurDansInfoTableViaLabel(label_text=transfermarkt_fin_contrat_find)
+            # Récupération du texte du span, donc la date de fin du contrat
+            date_fin_contrat_actuel_text = span_date_fin_contrat_actuel.text.strip()
+
+            # Transformation du texte correspondant à la date de fin du contrat en datetime puis date
+            date_fin_contrat_actuel = datetime.strptime(date_fin_contrat_actuel_text, '%d %b %Y').date()
+            
+            # Récupération de la date de fin du contrat au format ISO8601
+            date_fin_contrat_actuel_iso_format = date_fin_contrat_actuel.isoformat()
+
+            self.date_fin_contrat_actuel = date_fin_contrat_actuel_iso_format
+
+            return self.date_fin_contrat_actuel
+        except Exception as exception :
+            logging.error(
+                f"[ERROR] Un problème a été rencontré lors de la récupération de la date de fin du contrat actuel du joueur {self.id_joueur_transfermarkt} sur sa page TransferMarkt : {exception}  ")
+            return None

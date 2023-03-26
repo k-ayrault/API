@@ -76,5 +76,11 @@ class TestScrappJoueur(unittest.TestCase):
         self.assertEqual(positions_principales, ['14'])
         self.assertEqual(positions_secondaires, ['11', '12'])
 
+    def testScrappDateFinContratActuel(self):
+        html = self.scrapp_joueur.getHTML()
+        info_table = self.scrapp_joueur.getInfoTableJoueur()
+        date_fin_contrat_actuel = self.scrapp_joueur.scrappDateFinContratActuel()
+        self.assertEqual(date_fin_contrat_actuel, "2023-06-30")
+
 if __name__ == '__main__':
     unittest.main()
