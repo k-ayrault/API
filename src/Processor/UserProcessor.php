@@ -10,20 +10,27 @@ class UserProcessor implements ProcessorInterface {
 
     private $userPasswordHasherInterface;
     
-    public function __construct(UserPasswordHasherInterface $userPasswordHasherInterface)
+    public function __construct(private ProcessorInterface $persistProcessor, private ProcessorInterface $removeProcessor, UserPasswordHasherInterface $userPasswordHasherInterface)
     {  
-        $this->userPasswordHasherInterface = $userPasswordHasherInterface;
+        $this->userPasswordEncoder = $userPasswordHasherInterface;
     }
     
     public function process($user, Operation $operation, array $uriVariables = [], array $context = [])
     {
+
+        if ($operation instanceof DeleteOperationInterface) {
+            return $this->removeProcessor->process($user, $operation, $uriVariables, $context);
+        }
+
         if ($user->getPassword()) {
             $user->setPassword(
-                $this->userPasswordEncoder->encodePassword($user, $user->getPassword())
+                $this->userPasswordEncoder->hashPassword($user, $user->getPassword())
             );
         }
         
-        return $user;
+        $result = $this->persistProcessor->process($user, $operation, $uriVariables, $context);
+        
+        return $result;
     }
 } 
 

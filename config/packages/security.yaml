@@ -19,7 +19,7 @@ security:
             pattern: ^/api/login
             stateless: true
             json_login:
-                check_path: api_login # or api_login_check as defined in config/routes.yaml
+                check_path: /api/login # or api_login_check as defined in config/routes.yaml
                 success_handler: lexik_jwt_authentication.handler.authentication_success
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure
 
