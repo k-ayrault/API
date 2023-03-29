@@ -5,20 +5,14 @@ namespace App\Entity;
 use App\Repository\PretRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=PretRepository::class)
- */
+#[ORM\Entity(repositoryClass: PretRepository::class)]
 class Pret extends Contrat
 {
 
-    /**
-     * @ORM\Column(type="boolean")
-     */
+    #[ORM\Column(type: 'boolean')]
     private $option_achat;
 
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
+    #[ORM\Column(type: 'integer', nullable: true)]
     private $montant_option;
 
     public function __construct()

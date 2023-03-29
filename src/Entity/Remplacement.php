@@ -5,20 +5,14 @@ namespace App\Entity;
 use App\Repository\RemplacementRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=RemplacementRepository::class)
- */
+#[ORM\Entity(repositoryClass: RemplacementRepository::class)]
 class Remplacement extends Evenement
 {
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Joueur::class)
-     */
+    #[ORM\ManyToOne(targetEntity: Joueur::class)]
     private $joueur_entrant;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Joueur::class)
-     */
+    #[ORM\ManyToOne(targetEntity: Joueur::class)]
     private $joueur_sortant;
 
     public function getJoueurEntrant(): ?Joueur

@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use Doctrine\ORM\Mapping\InverseJoinColumn;
 use App\Repository\ClubRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -10,62 +11,41 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Doctrine\ORM\Mapping\JoinColumn;
 use Doctrine\ORM\Mapping\JoinTable;
 
-/**
- * @ORM\Entity(repositoryClass=ClubRepository::class)
- */
+#[ORM\Entity(repositoryClass: ClubRepository::class)]
 class Club
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     * @Groups ({"read.Pays"})
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
+    #[Groups(['read.Pays'])]
     private $id;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $nom;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Pays::class, cascade={"persist"}, fetch="EAGER")
-     * @ORM\JoinColumn(referencedColumnName="code")
-     */
+    #[ORM\ManyToOne(targetEntity: Pays::class, cascade: ['persist'], fetch: 'EAGER')]
+    #[ORM\JoinColumn(referencedColumnName: 'code')]
     private $pays;
 
-    /**
-     * @ORM\Column(type="date", nullable=true)
-     */
+    #[ORM\Column(type: 'date', nullable: true)]
     private $date_creation;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $site_web;
 
-    /**
-     * @ORM\OneToMany(targetEntity=LogoClub::class, mappedBy="club", cascade={"persist", "remove"}, fetch="EAGER")
-     */
+    #[ORM\OneToMany(targetEntity: LogoClub::class, mappedBy: 'club', cascade: ['persist', 'remove'], fetch: 'EAGER')]
     private $logos;
 
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
+    #[ORM\Column(type: 'integer', nullable: true)]
     private $id_transfermarkt;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Stade::class, cascade={"persist", "remove"}, fetch="EAGER")
-     */
+    #[ORM\ManyToOne(targetEntity: Stade::class, cascade: ['persist', 'remove'], fetch: 'EAGER')]
     private $stade;
 
-    /**
-     * @ORM\ManyToMany(targetEntity=CouleurClub::class, cascade={"persist"})
-     * @JoinTable(name="club_couleur_club",
-     *      joinColumns={@JoinColumn(name="club_id", referencedColumnName="id")},
-     *      inverseJoinColumns={@JoinColumn(name="couleur_club_id", referencedColumnName="id")}
-     * )
-     */
+    #[JoinTable(name: 'club_couleur_club')]
+    #[JoinColumn(name: 'club_id', referencedColumnName: 'id')]
+    #[InverseJoinColumn(name: 'couleur_club_id', referencedColumnName: 'id')]
+    #[ORM\ManyToMany(targetEntity: CouleurClub::class, cascade: ['persist'])]
     private $couleurs;
 
     public function __construct()

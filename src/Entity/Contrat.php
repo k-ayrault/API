@@ -5,43 +5,27 @@ namespace App\Entity;
 use App\Repository\ContratRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=ContratRepository::class)
- * @ORM\InheritanceType("SINGLE_TABLE")
- * @ORM\DiscriminatorColumn(name="type", type="string")
- * @ORM\DiscriminatorMap({
- *     "contrat" = "Contrat",
- *     "pret" = "Pret",
- *     "transfert" = "Transfert",
- * })
- */
+#[ORM\Entity(repositoryClass: ContratRepository::class)]
+#[ORM\InheritanceType('SINGLE_TABLE')]
+#[ORM\DiscriminatorColumn(name: 'type', type: 'string')]
+#[ORM\DiscriminatorMap(['contrat' => 'Contrat', 'pret' => 'Pret', 'transfert' => 'Transfert'])]
 class Contrat
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\Column(type="date", nullable=true)
-     */
+    #[ORM\Column(type: 'date', nullable: true)]
     private $debut;
 
-    /**
-     * @ORM\Column(type="date", nullable=true)
-     */
+    #[ORM\Column(type: 'date', nullable: true)]
     private $fin;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Club::class, cascade={"persist", "remove"}, fetch="EAGER")
-     */
+    #[ORM\ManyToOne(targetEntity: Club::class, cascade: ['persist', 'remove'], fetch: 'EAGER')]
     private $club;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Joueur::class, inversedBy="contrats", cascade={"persist", "remove"})
-     */
+    #[ORM\ManyToOne(targetEntity: Joueur::class, inversedBy: 'contrats', cascade: ['persist', 'remove'])]
     private $joueur;
 
     public function getId(): ?int

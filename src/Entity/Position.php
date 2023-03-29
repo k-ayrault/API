@@ -7,26 +7,18 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=PositionRepository::class)
- */
+#[ORM\Entity(repositoryClass: PositionRepository::class)]
 class Position
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $nom;
 
-    /**
-     * @ORM\OneToMany(targetEntity=Poste::class, mappedBy="position")
-     */
+    #[ORM\OneToMany(targetEntity: Poste::class, mappedBy: 'position')]
     private $postes;
 
     public function __construct()

@@ -5,21 +5,15 @@ namespace App\Entity;
 use App\Repository\CouleurClubRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=CouleurClubRepository::class)
- */
+#[ORM\Entity(repositoryClass: CouleurClubRepository::class)]
 class CouleurClub
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\Column(type="string", length=6, unique=true)
-     */
+    #[ORM\Column(type: 'string', length: 6, unique: true)]
     private $hexa;
 
     public function __construct(string $hexa)

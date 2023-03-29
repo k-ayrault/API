@@ -5,31 +5,21 @@ namespace App\Entity;
 use App\Repository\TitulaireRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=TitulaireRepository::class)
- */
+#[ORM\Entity(repositoryClass: TitulaireRepository::class)]
 class Titulaire
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Poste::class)
-     */
+    #[ORM\ManyToOne(targetEntity: Poste::class)]
     private $poste;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Joueur::class)
-     */
+    #[ORM\ManyToOne(targetEntity: Joueur::class)]
     private $joueur;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=RencontreLigue1::class, inversedBy="titulaires_domicile")
-     */
+    #[ORM\ManyToOne(targetEntity: RencontreLigue1::class, inversedBy: 'titulaires_domicile')]
     private $id_rencontre_ligue_1;
 
     public function getId(): ?int

@@ -7,37 +7,25 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=JoueurRepository::class)
- */
+#[ORM\Entity(repositoryClass: JoueurRepository::class)]
 class Joueur
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
+    #[ORM\Column(type: 'integer', nullable: true)]
     private $id_transfermarkt;
 
-    /**
-     * @ORM\OneToOne(targetEntity=InformationsPersonelles::class, cascade={"persist", "remove"}, fetch="EAGER")
-     * @ORM\JoinColumn(nullable=false)
-     */
+    #[ORM\OneToOne(targetEntity: InformationsPersonelles::class, cascade: ['persist', 'remove'], fetch: 'EAGER')]
+    #[ORM\JoinColumn(nullable: false)]
     private $informations_personnelles;
 
-    /**
-     * @ORM\OneToMany(targetEntity=PosteJoueur::class, mappedBy="joueur", cascade={"persist", "remove"}, fetch="EAGER")
-     */
+    #[ORM\OneToMany(targetEntity: PosteJoueur::class, mappedBy: 'joueur', cascade: ['persist', 'remove'], fetch: 'EAGER')]
     private $postes;
 
-    /**
-     * @ORM\OneToMany(targetEntity=Contrat::class, mappedBy="joueur", cascade={"persist", "remove"}, fetch="EAGER")
-     */
+    #[ORM\OneToMany(targetEntity: Contrat::class, mappedBy: 'joueur', cascade: ['persist', 'remove'], fetch: 'EAGER')]
     private $contrats;
 
     public function __construct()

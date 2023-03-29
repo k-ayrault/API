@@ -5,36 +5,24 @@ namespace App\Entity;
 use App\Repository\PosteRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=PosteRepository::class)
- */
+#[ORM\Entity(repositoryClass: PosteRepository::class)]
 class Poste
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\Column(type="string", length=10, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 10, nullable: true)]
     private $abreviation;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $nom;
 
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
+    #[ORM\Column(type: 'integer', nullable: true)]
     private $id_transfermarkt;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Position::class, inversedBy="postes")
-     */
+    #[ORM\ManyToOne(targetEntity: Position::class, inversedBy: 'postes')]
     private $position;
 
     public function getId(): ?int

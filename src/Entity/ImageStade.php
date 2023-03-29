@@ -5,26 +5,18 @@ namespace App\Entity;
 use App\Repository\ImageStadeRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=ImageStadeRepository::class)
- */
+#[ORM\Entity(repositoryClass: ImageStadeRepository::class)]
 class ImageStade
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
+    #[ORM\Column(type: 'string', length: 255)]
     private $lien;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Stade::class, inversedBy="images", cascade={"persist"})
-     */
+    #[ORM\ManyToOne(targetEntity: Stade::class, inversedBy: 'images', cascade: ['persist'])]
     private $stade;
 
     public function getId(): ?int

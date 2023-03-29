@@ -7,47 +7,31 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=StadeRepository::class)
- */
+#[ORM\Entity(repositoryClass: StadeRepository::class)]
 class Stade
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $nom;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Pays::class)
-     * @ORM\JoinColumn(referencedColumnName="code")
-     */
+    #[ORM\ManyToOne(targetEntity: Pays::class)]
+    #[ORM\JoinColumn(referencedColumnName: 'code')]
     private $pays;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $adresse;
 
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
+    #[ORM\Column(type: 'integer', nullable: true)]
     private $capacite;
 
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
+    #[ORM\Column(type: 'integer', nullable: true)]
     private $annee_construction;
 
-    /**
-     * @ORM\OneToMany(targetEntity=ImageStade::class, mappedBy="stade", cascade={"persist", "remove"}, fetch="EAGER")
-     */
+    #[ORM\OneToMany(targetEntity: ImageStade::class, mappedBy: 'stade', cascade: ['persist', 'remove'], fetch: 'EAGER')]
     private $images;
 
     public function __construct()

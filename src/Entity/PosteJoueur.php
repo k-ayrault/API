@@ -5,31 +5,21 @@ namespace App\Entity;
 use App\Repository\PosteJoueurRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=PosteJoueurRepository::class)
- */
+#[ORM\Entity(repositoryClass: PosteJoueurRepository::class)]
 class PosteJoueur
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\Column(type="boolean")
-     */
+    #[ORM\Column(type: 'boolean')]
     private $principal;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Poste::class)
-     */
+    #[ORM\ManyToOne(targetEntity: Poste::class)]
     private $poste;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Joueur::class, inversedBy="postes")
-     */
+    #[ORM\ManyToOne(targetEntity: Joueur::class, inversedBy: 'postes')]
     private $joueur;
 
     public function __construct(bool $principal)

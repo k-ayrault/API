@@ -5,29 +5,19 @@ namespace App\Entity;
 use App\Repository\ButRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=ButRepository::class)
- */
+#[ORM\Entity(repositoryClass: ButRepository::class)]
 class But extends Evenement
 {
-    /**
-     * @ORM\Column(type="boolean")
-     */
+    #[ORM\Column(type: 'boolean')]
     private $csc;
 
-    /**
-     * @ORM\Column(type="boolean")
-     */
+    #[ORM\Column(type: 'boolean')]
     private $penalty;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Joueur::class)
-     */
+    #[ORM\ManyToOne(targetEntity: Joueur::class)]
     private $buteur;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Joueur::class)
-     */
+    #[ORM\ManyToOne(targetEntity: Joueur::class)]
     private $passeur;
 
     public function isCsc(): ?bool

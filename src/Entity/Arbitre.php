@@ -5,21 +5,15 @@ namespace App\Entity;
 use App\Repository\ArbitreRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=ArbitreRepository::class)
- */
+#[ORM\Entity(repositoryClass: ArbitreRepository::class)]
 class Arbitre
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\OneToOne(targetEntity=InformationsPersonelles::class, cascade={"persist", "remove"})
-     */
+    #[ORM\OneToOne(targetEntity: InformationsPersonelles::class, cascade: ['persist', 'remove'])]
     private $informations_personelles;
 
     public function getId(): ?int

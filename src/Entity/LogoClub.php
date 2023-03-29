@@ -5,26 +5,18 @@ namespace App\Entity;
 use App\Repository\LogoClubRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=LogoClubRepository::class)
- */
+#[ORM\Entity(repositoryClass: LogoClubRepository::class)]
 class LogoClub
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
+    #[ORM\Column(type: 'string', length: 255)]
     private $lien;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Club::class, inversedBy="logos", cascade={"persist"})
-     */
+    #[ORM\ManyToOne(targetEntity: Club::class, inversedBy: 'logos', cascade: ['persist'])]
     private $club;
 
     public function __construct(string $lien)

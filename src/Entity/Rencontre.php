@@ -7,78 +7,50 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=RencontreRepository::class)
- */
+#[ORM\Entity(repositoryClass: RencontreRepository::class)]
 class Rencontre
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Club::class)
-     */
+    #[ORM\ManyToOne(targetEntity: Club::class)]
     private $equpie_domicile;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private $date_heure;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Club::class)
-     */
+    #[ORM\ManyToOne(targetEntity: Club::class)]
     private $equipe_exterieur;
 
-    /**
-     * @ORM\OneToOne(targetEntity=Score::class, cascade={"persist", "remove"})
-     */
+    #[ORM\OneToOne(targetEntity: Score::class, cascade: ['persist', 'remove'])]
     private $score;
 
-    /**
-     * @ORM\OneToMany(targetEntity=Titulaire::class, mappedBy="id_rencontre_ligue_1")
-     */
+    #[ORM\OneToMany(targetEntity: Titulaire::class, mappedBy: 'id_rencontre_ligue_1')]
     private $titulaires_domicile;
 
-    /**
-     * @ORM\OneToMany(targetEntity=Titulaire::class, mappedBy="id_rencontre_ligue_1")
-     */
+    #[ORM\OneToMany(targetEntity: Titulaire::class, mappedBy: 'id_rencontre_ligue_1')]
     private $titulaires_exterieur;
 
-    /**
-     * @ORM\ManyToMany(targetEntity=Joueur::class)
-     * @ORM\JoinTable (name="rencontre_remplaçant_domicile")
-     */
+    #[ORM\JoinTable(name: 'rencontre_remplaçant_domicile')]
+    #[ORM\ManyToMany(targetEntity: Joueur::class)]
     private $remplacants_domicile;
 
-    /**
-     * @ORM\ManyToMany(targetEntity=Joueur::class)
-     * @ORM\JoinTable (name="rencontre_remplaçant_exterieur")
-     */
+    #[ORM\JoinTable(name: 'rencontre_remplaçant_exterieur')]
+    #[ORM\ManyToMany(targetEntity: Joueur::class)]
     private $remplacants_exterieur;
 
-    /**
-     * @ORM\Column(type="boolean")
-     */
+    #[ORM\Column(type: 'boolean')]
     private $termine;
 
-    /**
-     * @ORM\ManyToMany(targetEntity=Diffuseur::class)
-     */
+    #[ORM\ManyToMany(targetEntity: Diffuseur::class)]
     private $diffuseur;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Arbitre::class)
-     */
+    #[ORM\ManyToOne(targetEntity: Arbitre::class)]
     private $arbitre_principale;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Arbitre::class)
-     */
+    #[ORM\ManyToOne(targetEntity: Arbitre::class)]
     private $arbitre_video;
 
     public function __construct()

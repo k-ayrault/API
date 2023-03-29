@@ -2,40 +2,28 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Core\Annotation\ApiResource;
 use App\Repository\PaysRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
-/**
- * @ORM\Entity(repositoryClass=PaysRepository::class)
- * @ApiResource
- */
+#[ORM\Entity(repositoryClass: PaysRepository::class)]
 class Pays
 {
 
-    /**
-     * @ORM\Id
-     * @ORM\Column(name="code", type="string", length=2, unique=true)
-     * @Groups ({"read.Pays"})
-     */
+    #[ORM\Id]
+    #[ORM\Column(name: 'code', type: 'string', length: 2, unique: true)]
+    #[Groups(['read.Pays'])]
     private $code;
 
-    /**
-     * @ORM\Column(type="string", length=255)
-     * @Groups ({"read.Pays"})
-     */
+    #[ORM\Column(type: 'string', length: 255)]
+    #[Groups(['read.Pays'])]
     private $nom;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     * @Groups ({"read.Pays"})
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[Groups(['read.Pays'])]
     private $drapeau;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $nom_fr;
 
     public function getCode(): ?string

@@ -5,20 +5,14 @@ namespace App\Entity;
 use App\Repository\CartonRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=CartonRepository::class)
- */
+#[ORM\Entity(repositoryClass: CartonRepository::class)]
 class Carton extends Evenement
 {
 
-    /**
-     * @ORM\Column(type="boolean")
-     */
+    #[ORM\Column(type: 'boolean')]
     private $jaune;
 
-    /**
-     * @ORM\Column(type="boolean")
-     */
+    #[ORM\Column(type: 'boolean')]
     private $rouge;
 
     public function isJaune(): ?bool

@@ -7,20 +7,14 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=RencontreLigue1Repository::class)
- */
+#[ORM\Entity(repositoryClass: RencontreLigue1Repository::class)]
 class RencontreLigue1 extends Rencontre
 {
 
-    /**
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Column(type: 'integer')]
     private $id_ligue_1;
 
-    /**
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Column(type: 'integer')]
     private $journee;
 
     public function getIdLigue1(): ?int
