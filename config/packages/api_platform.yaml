@@ -1,4 +1,6 @@
 api_platform:
+    graphql:
+        enabled: false
     mapping:
         paths:
             - '%kernel.project_dir%/src/Entity'
@@ -11,3 +13,4 @@ api_platform:
             JWT:
                 name: Authorization
                 type: header
+                
