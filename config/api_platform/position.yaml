@@ -1,0 +1,7 @@
+resources:
+  App\Entity\Position:
+    operations:
+      ApiPlatform\Metadata\Post:
+        validationContext: 
+          groups: ['persist.Position']
+      ApiPlatform\Metadata\Get: ~
