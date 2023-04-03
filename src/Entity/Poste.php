@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\PosteRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: PosteRepository::class)]
 class Poste
@@ -14,12 +15,15 @@ class Poste
     private $id;
 
     #[ORM\Column(type: 'string', length: 10, nullable: true)]
+    #[Groups(["persist.Position"])]
     private $abreviation;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[Groups(["persist.Position"])]
     private $nom;
 
     #[ORM\Column(type: 'integer', nullable: true)]
+    #[Groups(["persist.Position"])]
     private $id_transfermarkt;
 
     #[ORM\ManyToOne(targetEntity: Position::class, inversedBy: 'postes')]

@@ -6,6 +6,7 @@ use App\Repository\PositionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: PositionRepository::class)]
 class Position
@@ -13,12 +14,15 @@ class Position
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
+    #[Groups(["persist.Position"])]
     private $id;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[Groups(["persist.Position"])]
     private $nom;
 
-    #[ORM\OneToMany(targetEntity: Poste::class, mappedBy: 'position')]
+    #[ORM\OneToMany(targetEntity: Poste::class, cascade: ['persist'], mappedBy: 'position')]
+    #[Groups(["persist.Position"])]
     private $postes;
 
     public function __construct()
