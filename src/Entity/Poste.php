@@ -12,6 +12,7 @@ class Poste
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
+    #[Groups(['persist.Joueur'])]
     private $id;
 
     #[ORM\Column(type: 'string', length: 10, nullable: true)]

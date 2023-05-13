@@ -12,7 +12,7 @@ class Pays
 
     #[ORM\Id]
     #[ORM\Column(name: 'code', type: 'string', length: 2, unique: true)]
-    #[Groups(['read.Pays'])]
+    #[Groups(['read.Pays', 'persist.Joueur'])]
     private $code;
 
     #[ORM\Column(type: 'string', length: 255)]

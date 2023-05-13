@@ -1,0 +1,12 @@
+properties:
+    App\Entity\Joueur:
+        code:
+            identifier: true
+            
+resources:
+    App\Entity\Joueur:
+        operations:
+            ApiPlatform\Metadata\Post:
+                normalizationContext:
+                    groups: [ 'persist.Joueur' ]
+            #        security: 'is_granted("ROLE_SCRAPP")'

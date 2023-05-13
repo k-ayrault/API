@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\ContratRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ContratRepository::class)]
 #[ORM\InheritanceType('SINGLE_TABLE')]
@@ -17,12 +18,15 @@ class Contrat
     private $id;
 
     #[ORM\Column(type: 'date', nullable: true)]
+    #[Groups(['persist.Joueur'])]
     private $debut;
 
     #[ORM\Column(type: 'date', nullable: true)]
+    #[Groups(['persist.Joueur'])]
     private $fin;
 
     #[ORM\ManyToOne(targetEntity: Club::class, cascade: ['persist', 'remove'], fetch: 'EAGER')]
+    #[Groups(['persist.Joueur'])]
     private $club;
 
     #[ORM\ManyToOne(targetEntity: Joueur::class, inversedBy: 'contrats', cascade: ['persist', 'remove'])]
