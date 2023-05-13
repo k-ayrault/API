@@ -10,3 +10,10 @@ resources:
                 normalizationContext:
                     groups: [ 'persist.Joueur' ]
             #        security: 'is_granted("ROLE_SCRAPP")'
+            get_joueur_by_id_transfermakt:
+                class: ApiPlatform\Metadata\Get
+                method: GET
+                uriTemplate: /joueur/transfermarkt
+                requirements:
+                    _query.id_transfermarkt: '.+'
+                controller: App\Controller\ApiCustom\GetJoueurByIdTransferMarkt

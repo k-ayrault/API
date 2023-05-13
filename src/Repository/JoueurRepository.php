@@ -39,6 +39,15 @@ class JoueurRepository extends ServiceEntityRepository
         }
     }
 
+    public function findByIdTransfermarkt(int $idTransferMarkt): Joueur|null
+    {
+        $query = $this->createQueryBuilder('j')
+            ->andWhere('j.id_transfermarkt = :val')
+            ->setParameter('val', $idTransferMarkt)
+            ->getQuery();
+        return $query->getOneOrNullResult();
+    }
+
 //    /**
 //     * @return Joueur[] Returns an array of Joueur objects
 //     */
