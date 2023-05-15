@@ -17,20 +17,20 @@ class Joueur
     private $id;
 
     #[ORM\Column(type: 'integer', nullable: true)]
-    #[Groups(['persist.Joueur'])]
+    #[Groups(['persist.Joueur', 'get.Joueur'])]
     private $id_transfermarkt;
 
     #[ORM\OneToOne(targetEntity: InformationsPersonelles::class, cascade: ['persist', 'remove'], fetch: 'EAGER')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['persist.Joueur'])]
+    #[Groups(['persist.Joueur', 'get.Joueur'])]
     private $informations_personnelles;
 
     #[ORM\OneToMany(targetEntity: PosteJoueur::class, mappedBy: 'joueur', cascade: ['persist', 'remove'], fetch: 'EAGER')]
-    #[Groups(['persist.Joueur'])]
+    #[Groups(['persist.Joueur', 'get.Joueur'])]
     private $postes;
 
     #[ORM\OneToMany(targetEntity: Contrat::class, mappedBy: 'joueur', cascade: ['persist', 'remove'], fetch: 'EAGER')]
-    #[Groups(['persist.Joueur'])]
+    #[Groups(['persist.Joueur', 'get.Joueur'])]
     private $contrats;
 
     public function __construct()
@@ -56,7 +56,7 @@ class Joueur
         return $this;
     }
 
-    public function getInformations_Personnelles(): ?InformationsPersonelles
+    public function getInformationsPersonnelles(): ?InformationsPersonelles
     {
         return $this->informations_personnelles;
     }
