@@ -5,4 +5,6 @@ METHOD_POST = "POST"
 METHOD_GET = "GET"
 METHOD_PUT = "PUT"
 
-API_URL_LOGIN = "http://api/api/login"
+API_BASE_URL = "http://api/api"
+API_URL_LOGIN = f"{API_BASE_URL}/login"
+API_URL_GET_JOUEUR_BY_ID_TM = f"{API_BASE_URL}/joueur/transfermarkt"
