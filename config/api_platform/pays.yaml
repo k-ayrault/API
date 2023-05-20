@@ -1,0 +1,9 @@
+resources:
+    App\Entity\Pays:
+        operations:
+            get_pays_by_nom_fr:
+                class: ApiPlatform\Metadata\Get
+                method: GET
+                uriTemplate: /pays/byNom
+                controller: App\Controller\ApiCustom\GetPaysByNomFr
+                
