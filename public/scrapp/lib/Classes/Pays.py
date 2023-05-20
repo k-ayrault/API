@@ -27,3 +27,4 @@ class Pays:
         self.drapeau = json['drapeau'] if json.get('drapeau') else self.drapeau
         self.nomFR = json['nom_fr'] if json.get('nom_fr') else self.nomFR
         
+        return self

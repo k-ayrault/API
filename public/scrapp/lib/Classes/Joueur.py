@@ -11,7 +11,7 @@ class Joueur:
     contrats = []
 
     def __init__(self):
-        print("todo")
+        pass
 
     def toJson(self, schema: str):
         if schema == 'persist.Joueur':

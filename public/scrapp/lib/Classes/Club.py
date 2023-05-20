@@ -32,3 +32,5 @@ class Club:
         self.logos = [LogoClub().fromJson(json=logo) for logo in json['logos']] if json.get('logos') else self.logos
         self.idTransferMarkt = json['id_transfermarkt'] if json.get('id_transfermarkt') else self.idTransferMarkt
         self.stade = Stade().fromJson(json=json['stade']) if json.get('stade') else self.stade
+
+        return self

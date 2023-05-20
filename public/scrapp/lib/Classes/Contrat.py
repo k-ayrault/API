@@ -22,3 +22,5 @@ class Contrat:
         self.debut = json['debut'] if json.get('debut') else self.debut
         self.fin = json['fin'] if json.get('fin') else self.fin
         self.club = Club().fromJson(json=json['club']) if json.get('club') else self.club
+
+        return self

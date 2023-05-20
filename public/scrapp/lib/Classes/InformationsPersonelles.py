@@ -10,11 +10,11 @@ class InformationsPersonelles:
     meilleurPied = None
     taille = None
     equipementier = None
-    nationalites = None
+    nationalites = []
     retraiteJoueur = None
 
     def __init__(self):
-        print("todo")
+        pass
 
     def toJson(self, schema: str) -> dict:
         if schema == 'persist.Joueur':
@@ -56,3 +56,5 @@ class InformationsPersonelles:
         self.equipementier = json['equipementier'] if json.get('equipementier') else self.equipementier
         self.nationalites = [Pays().fromJson(json=pays) for pays in json['nationnalites']] if json.get('nationnalites') else self.nationalites
         self.retraiteJoueur = json['retraite_joueur'] if json.get('retraite_joueur') else self.retraiteJoueur
+
+        return self

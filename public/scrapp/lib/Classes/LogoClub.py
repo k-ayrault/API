@@ -16,3 +16,5 @@ class LogoClub:
     def fromJson(self, json: dict):
         self.id = json['id'] if json.get('id') else self.id
         self.lien = json['lien'] if json.get('lien') else self.lien
+
+        return self

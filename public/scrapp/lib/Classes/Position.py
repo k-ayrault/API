@@ -19,3 +19,5 @@ class Position:
     def fromJson(self, json: dict):
         self.id = json['id'] if json.get('id') else self.id
         self.nom = json['nom'] if json.get('nom') else self.nom
+
+        return self

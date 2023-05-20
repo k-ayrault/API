@@ -11,7 +11,7 @@ class PosteJoueur:
     def toJson(self, schema: str) -> dict:
         if schema == 'persist.Joueur':
             json = {
-                "principale": self.principale,
+                "principal": self.principale,
                 "poste": self.poste.toJson(schema=schema)
             }
         else :
@@ -21,7 +21,11 @@ class PosteJoueur:
                 "poste": self.poste.toJson(schema=schema)
             }
 
+        return json
+
     def fromJson(self, json: dict):
         self.id = json['id'] if json.get('id') else self.id
-        self.principale = json['principale'] if json.get('principale') else self.principale
+        self.principale = json['principal'] if json.get('principal') else self.principale
         self.poste = Poste().fromJson(json=json['poste']) if json.get('poste') else self.poste
+
+        return self

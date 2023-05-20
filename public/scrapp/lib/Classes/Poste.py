@@ -11,7 +11,7 @@ class Poste:
         pass
 
     def toJson(self, schema:str) -> dict:
-        if schema == 'persist.joueur':
+        if schema == 'persist.Joueur':
             json = {
                 "id": self.id,
             }
@@ -32,3 +32,5 @@ class Poste:
         self.nom = json['nom'] if json.get('nom') else self.nom
         self.idTransferMarkt = json['id_transfermarkt'] if json.get('id_transfermarkt') else self.idTransferMarkt
         self.position = Position().fromJson(json=json['position']) if json.get('position') else self.position
+
+        return self
