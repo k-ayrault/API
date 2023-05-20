@@ -1,5 +1,6 @@
 import unittest
 from lib.ApiChourmOlympique import ApiChourmOlympique
+from lib.Classes.Joueur import Joueur
 
 class TestApiChourmOlympique(unittest.TestCase):
 
@@ -12,7 +13,7 @@ class TestApiChourmOlympique(unittest.TestCase):
     def testGetJoueurByIdTransferMarktWithCorrectId(self):
         joueur = self.api.getJoueurByIdTransferMarkt(160)
 
-        self.assertIsNotNone(joueur)
+        self.assertIsInstance(joueur, Joueur)
 
     def testGetJoueurByIdTransferMarktWithString(self):
         with self.assertRaises(Exception) as context:

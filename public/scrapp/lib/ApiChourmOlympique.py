@@ -3,7 +3,7 @@ from lib.config_api import *
 import requests
 from http import HTTPStatus
 import sys
-
+from lib.Classes.Joueur import Joueur
 
 class ApiChourmOlympique:
     token = None
@@ -33,7 +33,10 @@ class ApiChourmOlympique:
         try:
             # Si on a trouvé un joueur pour cet ID TransferMarkt, et qu'il n'y a pas eu d'erreur on retourne le joueur
             responseJson = self.exec(method=METHOD_GET, url=API_URL_GET_JOUEUR_BY_ID_TM, params=params)
-            return responseJson
+
+            joueur = Joueur().fromJson(json=responseJson)
+            
+            return joueur
         except requests.exceptions.HTTPError as httpError:
             httpStatusCode = httpError.response.status_code # Status code de la réponse HTTP
             if httpStatusCode == HTTPStatus.NOT_FOUND: # Si on aucun joueur n'a été trouvé pour cet ID TransferMarkt
