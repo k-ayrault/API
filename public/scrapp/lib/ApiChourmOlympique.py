@@ -1,3 +1,4 @@
+from lib.Exception.JoueurNotFoundException import JoueurNotFoundException
 from lib.config_api import *
 import requests
 from http import HTTPStatus
@@ -28,10 +29,18 @@ class ApiChourmOlympique:
         params = {
             "id_transfermarkt": idTransfermarkt
         }
-
-        responseJson = self.exec(method=METHOD_GET, url=API_URL_GET_JOUEUR_BY_ID_TM, params=params)
-
-        return responseJson
+        # On essaye de récupérer le joueur
+        try:
+            # Si on a trouvé un joueur pour cet ID TransferMarkt, et qu'il n'y a pas eu d'erreur on retourne le joueur
+            responseJson = self.exec(method=METHOD_GET, url=API_URL_GET_JOUEUR_BY_ID_TM, params=params)
+            return responseJson
+        except requests.exceptions.HTTPError as httpError:
+            httpStatusCode = httpError.response.status_code # Status code de la réponse HTTP
+            if httpStatusCode == HTTPStatus.NOT_FOUND: # Si on aucun joueur n'a été trouvé pour cet ID TransferMarkt
+                raise JoueurNotFoundException(
+                    f"Aucun joueur n'a été trouvé pour l'ID TransferMarkt {idTransfermarkt} !")
+            else: # Si une erreur s'est produite
+                sys.exit(httpError)
 
     def exec(self, method: str, url: str, params: dict):
         header = {
