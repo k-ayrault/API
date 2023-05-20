@@ -1,5 +1,5 @@
 import unittest
-from ScrappJoueur import ScrappJoueur
+from lib.ScrappJoueur import ScrappJoueur
 from scrapp_func_global import transfermarkt_url_replace
 from bs4 import BeautifulSoup
 
