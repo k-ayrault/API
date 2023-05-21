@@ -1,0 +1,13 @@
+API_LOGIN = "lescrapper"
+API_PASSWD = "x@_q8HLC62RE4*6a"
+
+METHOD_POST = "POST"
+METHOD_GET = "GET"
+METHOD_PUT = "PUT"
+METHOD_PATCH = "PATCH"
+
+API_BASE_URL = "http://api/api"
+API_URL_LOGIN = f"{API_BASE_URL}/login"
+API_URL_GET_JOUEUR_BY_ID_TM = f"{API_BASE_URL}/joueur/transfermarkt"
+API_URL_GET_PAYS_BY_NOM_FR = f"{API_BASE_URL}/joueur/byNom"
+API_URL_PAYS = f"{API_BASE_URL}/pays"
