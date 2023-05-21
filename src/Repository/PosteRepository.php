@@ -39,6 +39,15 @@ class PosteRepository extends ServiceEntityRepository
         }
     }
 
+    public function findByIdTransfermarkt(int $idTransferMarkt): Poste|null
+    {
+        $query = $this->createQueryBuilder('p')
+            ->andWhere('p.id_transfermarkt = :val')
+            ->setParameter('val', $idTransferMarkt)
+            ->getQuery();
+        return $query->getOneOrNullResult();
+    }
+
 //    /**
 //     * @return Poste[] Returns an array of Poste objects
 //     */

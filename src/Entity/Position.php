@@ -14,11 +14,11 @@ class Position
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    #[Groups(["persist.Position"])]
+    #[Groups(["persist.Position", "get.Poste"])]
     private $id;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    #[Groups(["persist.Position"])]
+    #[Groups(["persist.Position", "get.Poste"])]
     private $nom;
 
     #[ORM\OneToMany(targetEntity: Poste::class, cascade: ['persist'], mappedBy: 'position')]

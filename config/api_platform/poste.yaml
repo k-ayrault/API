@@ -1,0 +1,21 @@
+resources:
+    App\Entity\Poste:
+        operations:
+            get_poste_by_id_transfermarkt:
+                class: ApiPlatform\Metadata\GetCollection
+                method: GET
+                uriTemplate: /poste/transfermarkt
+                controller: App\Controller\ApiCustom\GetPosteByIdTransferMarkt
+                normalizationContext:
+                    groups: [ "get.Poste" ]
+                openapi:
+                    summary: Retrouve un poste via son ID TransferMarkt
+                    description: ^
+                        Retrouve un poste via son ID TransferMarkt
+                    parameters:
+                        -   in: query
+                            name: id_transfermarkt
+                            schema:
+                                type: integer
+                            required: true
+                            description: ID TransferMarkt du poste

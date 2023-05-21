@@ -12,22 +12,23 @@ class Poste
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    #[Groups(['persist.Joueur', 'get.Joueur'])]
+    #[Groups(['persist.Joueur', 'get.Joueur', "get.Poste"])]
     private $id;
 
     #[ORM\Column(type: 'string', length: 10, nullable: true)]
-    #[Groups(["persist.Position"])]
+    #[Groups(["persist.Position", "get.Poste"])]
     private $abreviation;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    #[Groups(["persist.Position"])]
+    #[Groups(["persist.Position", "get.Poste"])]
     private $nom;
 
     #[ORM\Column(type: 'integer', nullable: true)]
-    #[Groups(["persist.Position"])]
+    #[Groups(["persist.Position", "get.Poste"])]
     private $id_transfermarkt;
 
     #[ORM\ManyToOne(targetEntity: Position::class, inversedBy: 'postes')]
+    #[Groups(["get.Poste"])]
     private $position;
 
     public function getId(): ?int
