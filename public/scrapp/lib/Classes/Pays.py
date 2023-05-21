@@ -12,12 +12,17 @@ class Pays:
             json = {
                 "code": self.code
             }
+        elif schema == 'patch.Pays.drapeau':
+            json = {
+                "code": self.code,
+                "drapeau": self.drapeau
+            }
         else:
             json = {
                 "code": self.code,
                 "nom": self.nom,
                 "drapeau": self.drapeau,
-                "nom_fr": self.nomFR
+                "nomFr": self.nomFR
             }
         return json
 
