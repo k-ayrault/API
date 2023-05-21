@@ -107,10 +107,8 @@ class ApiChourmOlympique:
         else:
             raise Exception(f"La méthode communiqué {method} n'est pas prise en compte !")
 
-        try:
-            response.raise_for_status()
-        except requests.exceptions.HTTPError as err:
-            raise Exception(f"La requête `{method}` vers l'URL `{url}` a rencontré une erreur : `{err}`")
+
+        response.raise_for_status()
 
         responseJson = response.json()
 
