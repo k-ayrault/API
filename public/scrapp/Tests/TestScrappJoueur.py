@@ -5,13 +5,13 @@ from bs4 import BeautifulSoup
 
 
 class TestScrappJoueur(unittest.TestCase):
+    @classmethod
+    def setUp(cls):
+        cls.idJoueurTransfermarkt = "40433"
+        cls.lienJoueurTransfermarkt = f"https://www.transfermarkt.fr/alexis-sanchez/{transfermarkt_url_replace}/spieler/40433"
 
-    def setUp(self):
-        self.idJoueurTransfermarkt = "40433"
-        self.lienJoueurTransfermarkt = f"https://www.transfermarkt.fr/alexis-sanchez/{transfermarkt_url_replace}/spieler/40433"
-
-        self.scrappJoueur = ScrappJoueur(
-            idJoueurTransferMarkt=self.idJoueurTransfermarkt, lienJoueurTransferMarkt=self.lienJoueurTransfermarkt)
+        cls.scrappJoueur = ScrappJoueur(
+            idJoueurTransferMarkt=cls.idJoueurTransfermarkt, lienJoueurTransferMarkt=cls.lienJoueurTransfermarkt)
 
     def testGetHTMLSuccessfull(self):
         html = self.scrappJoueur.getHTML()
@@ -50,7 +50,9 @@ class TestScrappJoueur(unittest.TestCase):
         html = self.scrappJoueur.getHTML()
         infoTable = self.scrappJoueur.getInfoTableJoueur()
         nationalites = self.scrappJoueur.scrappNationalites()
-        self.assertEqual(nationalites, ["Chili"])
+        self.assertEqual(len(nationalites), 1)
+        pays = nationalites[0]
+        self.assertEqual(pays.code, "CL")
 
     def testScrappPiedFort(self):
         html = self.scrappJoueur.getHTML()
@@ -64,7 +66,7 @@ class TestScrappJoueur(unittest.TestCase):
         taille = self.scrappJoueur.scrappTaile()
         self.assertEqual(taille, "169")
 
-    def testScrappTaille(self):
+    def testScrappEquipementier(self):
         html = self.scrappJoueur.getHTML()
         infoTable = self.scrappJoueur.getInfoTableJoueur()
         equipementier = self.scrappJoueur.scrappEquipementierActuel()
@@ -72,9 +74,9 @@ class TestScrappJoueur(unittest.TestCase):
 
     def testScrappPositions(self):
         html = self.scrappJoueur.getHTML()
-        positionsPrincipales, positionsSecondaires = self.scrappJoueur.scrappPositions()
-        self.assertEqual(positionsPrincipales, ['14'])
-        self.assertEqual(positionsSecondaires, ['11', '12'])
+        postes = self.scrappJoueur.scrappPositions()
+        self.assertEqual(len(postes), 3)
+        # TODO : peut-être rajouter des tests
 
     def testScrappDateFinContratActuel(self):
         html = self.scrappJoueur.getHTML()

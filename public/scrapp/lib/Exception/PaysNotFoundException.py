@@ -1,3 +1,3 @@
 class PaysNotFoundException(Exception):
-    """Levé lorsque aucun joueur n'a été trouvé pour un ID TransferMarkt"""
+    """Levé lorsque aucun pays n'a été trouvé pour un nom français"""
     pass

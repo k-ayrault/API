@@ -1,6 +1,8 @@
 from lib.Classes.Pays import Pays
+from lib.Classes.Poste import Poste
 from lib.Exception.JoueurNotFoundException import JoueurNotFoundException
 from lib.Exception.PaysNotFoundException import PaysNotFoundException
+from lib.Exception.PosteNotFoundException import PosteNotFoundException
 from lib.config_api import *
 import requests
 from http import HTTPStatus
@@ -76,7 +78,6 @@ class ApiChourmOlympique:
         except requests.exceptions.HTTPError as httpError:
             sys.exit(httpError)
 
-
     def patchPays(self, pays: Pays, schema: str):
         params = pays.toJson(schema=schema)
         url = f"{API_URL_PAYS}/{pays.code}"
@@ -85,6 +86,26 @@ class ApiChourmOlympique:
             responseJson = self.exec(method=METHOD_PATCH, url=url, params=params)
         except requests.exceptions.HTTPError as httpError:
             sys.exit(httpError)
+
+    def getPosteByIdTransfermarkt(self, idTransfermarkt:int):
+        params = {
+            "id_transfermarkt": idTransfermarkt
+        }
+        # On essaye de récupérer le joueur
+        try:
+            # Si on a trouvé un joueur pour cet ID TransferMarkt, et qu'il n'y a pas eu d'erreur on retourne le joueur
+            responseJson = self.exec(method=METHOD_GET, url=API_URL_GET_POSTE_BY_ID_TM, params=params)
+
+            poste = Poste().fromJson(json=responseJson)
+
+            return poste
+        except requests.exceptions.HTTPError as httpError:
+            httpStatusCode = httpError.response.status_code  # Status code de la réponse HTTP
+            if httpStatusCode == HTTPStatus.NOT_FOUND:  # Si on aucun joueur n'a été trouvé pour cet ID TransferMarkt
+                raise PosteNotFoundException(
+                    f"Aucun poste n'a été trouvé pour l'ID TransferMarkt {idTransfermarkt} !")
+            else:  # Si une erreur s'est produite
+                sys.exit(httpError)
 
     def exec(self, method: str, url: str, params: dict):
         header = {

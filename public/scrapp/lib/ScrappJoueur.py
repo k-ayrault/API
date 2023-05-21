@@ -1,5 +1,9 @@
+from lib.ApiChourmOlympique import ApiChourmOlympique
+from lib.Classes.Joueur import Joueur
+from lib.Classes.PosteJoueur import PosteJoueur
+from lib.Exception.PaysNotFoundException import PaysNotFoundException
 from scrapp_func_global import *
-
+from lib.Exception.JoueurNotFoundException import JoueurNotFoundException
 
 class ScrappJoueur:
 
@@ -21,7 +25,15 @@ class ScrappJoueur:
     # Date de fin du contrat actuel du joueur
     dateFinContratActuel = None
 
-    def __init__(self, idJoueurTransferMarkt, lienJoueurTransferMarkt):
+    api = ApiChourmOlympique()
+
+    joueur = None
+
+    def __init__(self, idJoueurTransferMarkt: int, lienJoueurTransferMarkt: str):
+        try :
+            self.joueur = self.api.getJoueurByIdTransferMarkt(idTransfermarkt=idJoueurTransferMarkt)
+        except JoueurNotFoundException as joueurNotFundException:
+            self.joueur = Joueur()
         self.idJoueurTransferMarkt = idJoueurTransferMarkt
         self.lienJoueurTransferMarkt = lienJoueurTransferMarkt.replace(
             transfermarkt_url_replace, transfermarkt_info_joueur)
@@ -89,7 +101,6 @@ class ScrappJoueur:
                 f"[ERROR] Un problème a été rencontré lors de la récupération de la 'table' contenant les infos du joueur {self.idJoueurTransferMarkt} sur sa page TransferMarkt : {exception}  ")
             return None
 
-
     """
         Fonction qui récupère le span contenant la valeur correspondant au label en entrée
         Entrée : 
@@ -112,7 +123,6 @@ class ScrappJoueur:
             raise Exception(
                 f"Le label '{labelText}' est introuvable dans la table d'info")
         
-
     """
         Fonction qui récupère le nom et le prénom du joueur via le header de sa page TransferMarkt
         Entrée : 
@@ -139,6 +149,9 @@ class ScrappJoueur:
             # Récupération du prénom qui est présent dans le reste du titre
             prenom = h1NomJoueur.text.strip()
 
+            self.joueur.informationsPersonelles.nom = nom
+            self.joueur.informationsPersonelles.prenom = prenom
+
             return nom, prenom
         except Exception as exception:
             logging.error(
@@ -149,19 +162,21 @@ class ScrappJoueur:
         Fonction qui récupère le nom complet dans la table contenant les informations personnelles du joueur sur sa page TransferMarkt
         Entrée :
         Sortie :
-            - nomComplet, Nom complet du joueur si la récupération s'est déroulé correctement
-                sinon None
-    """
+        - nomComplet, Nom complet du joueur si la récupération s'est déroulé correctement
+        sinon None
+        """
     def scrappNomComplet(self):
         try:
             # Récupération du span contenant le nom complet du joueur
             spanNomComplet = self.getSpanValeurDansInfoTableViaLabel(labelText=TM_JOUEUR_NOM_COMPLET_LABEL_TEXT)
-            
+
             # Récupération du texte du span, donc le nom complet
             nomComplet = spanNomComplet.text.strip()
 
+            self.joueur.informationsPersonelles.nomComplet = nomComplet
+
             return nomComplet
-            
+
         except Exception as exception:
             logging.error(
                 f"[ERROR] Un problème a été rencontré lors de la récupération du nom complet du joueur {self.idJoueurTransferMarkt} sur sa page TransferMarkt : {exception}  ")
@@ -171,8 +186,8 @@ class ScrappJoueur:
         Fonction qui récupère la date de naissance dans la table contenant les informations personelles du joueur sur sa page TransferMarkt et la renvoie au format ISO8601
         Entrée : 
         Sortie : 
-            - dateIsoNaissance, date de naissance du joueur au format ISO8601
-    """
+        - dateIsoNaissance, date de naissance du joueur au format ISO8601
+        """
     def scrappDateDeNaissance(self):
         # Récupération de la date de naissance du joueur
         try:
@@ -184,9 +199,11 @@ class ScrappJoueur:
             dateNaissance = datetime.strptime(textNaissance,'%d %b %Y').date()
             # Récupération de la date de naissance au format ISO8601
             dateIsoNaissance = dateNaissance.isoformat()
-            
+
+            self.joueur.informationsPersonelles.dateNaissance = dateIsoNaissance
+
             return dateIsoNaissance
-        
+
         except Exception as exception:
             logging.error(
                 f"[ERROR] Un problème a été rencontré lors de la récupération de la date de naissance du joueur {self.idJoueurTransferMarkt} sur sa page TransferMarkt : {exception}  ")
@@ -196,8 +213,8 @@ class ScrappJoueur:
         Fonction qui récupère la/les nationalité(s) dans la table contenant les informations personelles du joueur sur sa page TransferMarkt
         Entrée :
         Sortie :
-            - nationalites, tableau contenant les différentes nationalités du joueur avec le nom des pays respectifs
-    """
+        - nationalites, tableau contenant les différentes nationalités du joueur avec le nom des pays respectifs
+        """
     def scrappNationalites(self):
         # Récupération des nationalités du joueur
         nationalites = []
@@ -214,10 +231,15 @@ class ScrappJoueur:
                 # Filtrage du nom du pays, afin de le renommer selon certains cas spécifiques
                 nationalite = triNation(nomPays)
 
+                # TODO : Test la modification et modifier le test correspondant
                 if nationalite :
-                    nationalites.append(nationalite)    
+                    try:
+                        pays = self.api.getPaysByNomFr(nomFr=nationalite)
+                        self.joueur.informationsPersonelles.nationalites.append(pays)
+                    except PaysNotFoundException as paysNotFoundException:
+                        logging.error(f"[ERROR] Aucun pays n'a été trouvé via l'API pour le nom : {nationalite}")
 
-            return nationalites
+                return self.joueur.informationsPersonelles.nationalites
         
         except Exception as exception:
             logging.error(
@@ -238,6 +260,8 @@ class ScrappJoueur:
 
             # Récupération du texte du span, donc le pied fort
             piedFort = spanPiedFort.text.strip()
+
+            self.joueur.informationsPersonelles.meilleurPied = piedFort
 
             return piedFort
         
@@ -263,6 +287,8 @@ class ScrappJoueur:
             # Ne récupère que les chiffres pour avoir le nombre de centimètre du joueur (son corp ^^)
             taille = re.sub('\D', '', tailleText)
 
+            self.joueur.informationsPersonelles.taille = taille
+
             return taille
         except Exception as exception:
             logging.error(
@@ -283,6 +309,8 @@ class ScrappJoueur:
             # Récupération du texte du span, donc de l'équipementier
             equipementier = spanEquipementier.text.strip()
 
+            self.joueur.informationsPersonelles.equipementier = equipementier
+
             return equipementier
         except Exception as exception :
             logging.error(
@@ -298,8 +326,6 @@ class ScrappJoueur:
             Tout cela si la récupération se passe bien, sinon None 
     """
     def scrappPositions(self):
-        positionsPrincipales = []
-        positionsSecondaires = []
         try :
             # Récupération de la div contenant les différentes positions du joueur (point sur le terrain)
             boxPositions = self.htmlTransferMarktJoueur.find("div", {"class": "detail-position__matchfield"})
@@ -308,6 +334,8 @@ class ScrappJoueur:
             spanPositions = boxPositions.findAll("span", { "class" : "position" })
 
             for spanPosition in spanPositions :
+                posteJoueur = PosteJoueur()
+
                 # On récupère le type de la position que l'on traite
                 if "position__primary" in spanPosition["class"] : # Position principale
                     classTypePosition = "position__primary"
@@ -332,13 +360,18 @@ class ScrappJoueur:
                 # Récupération de l'identifiant de la position en supprimant le début de la class
                 position = classPosition.replace(debutClassPosition, "")
 
+                poste = self.api.getPosteByIdTransfermarkt(idTransfermarkt=position)
+                posteJoueur.poste = poste
+
                 # Ajout de la position dans le bon tableau
                 if classTypePosition == "position__primary" :
-                    positionsPrincipales.append(position)
+                    posteJoueur.principale = True
                 elif classTypePosition == "position__secondary" :
-                    positionsSecondaires.append(position)
+                    posteJoueur.principale = False
+
+                self.joueur.postes.append(posteJoueur)
             
-            return positionsPrincipales, positionsSecondaires
+            return self.joueur.postes
 
         except Exception as exception :
             logging.error(
