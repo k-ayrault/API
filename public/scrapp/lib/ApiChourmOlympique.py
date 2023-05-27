@@ -1,3 +1,5 @@
+from lib.Classes.InformationsPersonelles import InformationsPersonelles
+from lib.Classes.InformationsPersonellesTemp import InformationsPersonellesTemp
 from lib.Classes.Pays import Pays
 from lib.Classes.Poste import Poste
 from lib.Exception.JoueurNotFoundException import JoueurNotFoundException
@@ -46,9 +48,27 @@ class ApiChourmOlympique:
             httpStatusCode = httpError.response.status_code  # Status code de la réponse HTTP
             if httpStatusCode == HTTPStatus.NOT_FOUND:  # Si on aucun joueur n'a été trouvé pour cet ID TransferMarkt
                 raise JoueurNotFoundException(
-                    f"Aucun joueur n'a été trouvé pour l'ID TransferMarkt {idTransfermarkt} !")
+            f"Aucun joueur n'a été trouvé pour l'ID TransferMarkt {idTransfermarkt} !")
             else:  # Si une erreur s'est produite
                 sys.exit(httpError)
+
+    def patchInformationsPersonelles(self, informationsPersonelles:InformationsPersonelles):
+        params = informationsPersonelles.toJson(schema='persist.InformationsPersonelles')
+        url = f"{API_URL_INFORMATIONS_PERSONELLES}/{informationsPersonelles.id}"
+
+        try :
+            responseJson = self.exec(method=METHOD_PATCH, url=url, params=params)
+        except requests.exceptions.HTTPError as httpError:
+            sys.exit(httpError)
+
+    def postInformationsPersonellesTemp(self, informationsPersonellesTemp:InformationsPersonellesTemp):
+        params = informationsPersonellesTemp.toJson(schema='persist.InformationsPersonellesTemp')
+        url = f"{API_URL_INFORMATIONS_PERSONELLES_TEMP}"
+
+        try:
+            responseJson = self.exec(method=METHOD_POST, url=url, params=params)
+        except requests.exceptions.HTTPError as httpError:
+            sys.exit(httpError)
 
     def getPaysByNomFr(self, nomFr: str):
         params = {

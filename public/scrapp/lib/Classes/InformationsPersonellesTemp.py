@@ -1,23 +1,16 @@
+from lib.Classes.InformationsPersonelles import InformationsPersonelles
 from lib.Classes.Pays import Pays
 
 
-class InformationsPersonelles:
-    id = None
-    nomComplet = None
-    nom = None
-    prenom = None
-    dateNaissance = None
-    meilleurPied = None
-    taille = None
-    equipementier = None
-    nationalites = []
-    retraiteJoueur = None
+class InformationsPersonellesTemp(InformationsPersonelles):
+    informationsPersonelles = InformationsPersonelles()
 
-    def __init__(self):
-        pass
+    def __init__(self, informationsPersonelles: InformationsPersonelles):
+        super().__init__()
+        self.informationsPersonelles = informationsPersonelles
 
     def toJson(self, schema: str) -> dict:
-        if schema == 'persist.Joueur':
+        if schema in ['persist.InformationsPersonellesTemp']:
             json = {
                 "nom_complet": self.nomComplet,
                 "nom": self.nom,
@@ -27,15 +20,12 @@ class InformationsPersonelles:
                 "taille": self.taille,
                 "equipementier": self.equipementier,
                 "nationnalites": [pays.toJson(schema=schema) for pays in self.nationalites],
-                "retraite_joueur": self.retraiteJoueur
+                "retraite_joueur": self.retraiteJoueur,
+                "informationsPersonelles" : self.informationsPersonelles.toJson(schema=schema)
             }
-        elif schema == 'persist.InformationsPersonellesTemp':\
+        else :
             json = {
-                "id": self.id
-            }
-        else:
-            json = {
-                "id": self.id,
+                "id" : self.id,
                 "nom_complet": self.nomComplet,
                 "nom": self.nom,
                 "prenom": self.prenom,
@@ -44,10 +34,12 @@ class InformationsPersonelles:
                 "taille": self.taille,
                 "equipementier": self.equipementier,
                 "nationnalites": [pays.toJson(schema=schema) for pays in self.nationalites],
-                "retraite_joueur": self.retraiteJoueur
+                "retraite_joueur": self.retraiteJoueur,
+                "informationsPersonelles" : self.informationsPersonelles.toJson(schema=schema)
             }
-
+            
         return json
+
 
     def fromJson(self, json: dict):
         self.id = json['id'] if json.get('id') else self.id
@@ -60,5 +52,7 @@ class InformationsPersonelles:
         self.equipementier = json['equipementier'] if json.get('equipementier') else self.equipementier
         self.nationalites = [Pays().fromJson(json=pays) for pays in json['nationnalites']] if json.get('nationnalites') else self.nationalites
         self.retraiteJoueur = json['retraite_joueur'] if json.get('retraite_joueur') else self.retraiteJoueur
+        self.informationsPersonelles = InformationsPersonelles().fromJson(json=json['informationsPersonelles']) if json.get('informationsPersonelles') else self.informationsPersonelles
 
         return self
+    
