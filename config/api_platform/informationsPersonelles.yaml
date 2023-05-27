@@ -1,0 +1,20 @@
+resources:
+    App\Entity\InformationsPersonelles:
+        operations:
+            ApiPlatform\Metadata\Patch:
+                normalizationContext:
+                    groups: [ 'persist.InformationsPersonelles' ]
+                security: 'is_granted("ROLE_SCRAPP")'
+                openapi:
+                    summary: Mets à jour les informations personnelles
+                    description: Mets à jour les informations personnelles
+    App\Entity\InformationsPersonellesTemp:
+        operations:
+            ApiPlatform\Metadata\Post:
+                normalizationContext:
+                    groups: [ 'persist.InformationsPersonellesTemp' ]
+                security: 'is_granted("ROLE_SCRAPP")'
+                openapi:
+                    summary: Ajoutes une informations personelles temporaires
+                    description: \
+                        Ajoute une informations personelles temporaires (si le scrapper à trouvé des différences avec celles actuelles)
