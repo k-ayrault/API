@@ -18,70 +18,51 @@ class TestScrappJoueur(unittest.TestCase):
         self.assertIsInstance(html, BeautifulSoup)
 
     def testGetHeaderInfoJoueur(self):
-        html = self.scrappJoueur.getHTML()
-        header = self.scrappJoueur.getHeaderInfoJoueur()
+        header = self.scrappJoueur.scrappInfoPerso.getHeaderInfoJoueur()
         self.assertIsNotNone(header)
 
     def testGetInfoTableJoueur(self):
-        html = self.scrappJoueur.getHTML()
-        infoTable = self.scrappJoueur.getInfoTableJoueur()
+        infoTable = self.scrappJoueur.scrappInfoPerso.getInfoTableJoueur()
         self.assertIsNotNone(infoTable)
 
     def testScrappNomEtPrenom(self):
-        html = self.scrappJoueur.getHTML()
-        header = self.scrappJoueur.getHeaderInfoJoueur()
-        nom, prenom = self.scrappJoueur.scrappNomEtPrenom()
+        nom, prenom = self.scrappJoueur.scrappInfoPerso.scrappNomEtPrenom()
         self.assertEqual(nom, "Sánchez")
         self.assertEqual(prenom, "Alexis")
 
     def testScrappNomComplet(self):
-        html = self.scrappJoueur.getHTML()
-        infoTable = self.scrappJoueur.getInfoTableJoueur()
-        nomComplet = self.scrappJoueur.scrappNomComplet()
+        nomComplet = self.scrappJoueur.scrappInfoPerso.scrappNomComplet()
         self.assertEqual(nomComplet, "Alexis Alejandro Sánchez Sánchez")
 
     def testScrappDateDeNaissance(self):
-        html = self.scrappJoueur.getHTML()
-        infoTable = self.scrappJoueur.getInfoTableJoueur()
-        dateDeNaissance = self.scrappJoueur.scrappDateDeNaissance()
+        dateDeNaissance = self.scrappJoueur.scrappInfoPerso.scrappDateDeNaissance()
         self.assertEqual(dateDeNaissance, "1988-12-19")
 
     def testScrappNationalite(self):
-        html = self.scrappJoueur.getHTML()
-        infoTable = self.scrappJoueur.getInfoTableJoueur()
-        nationalites = self.scrappJoueur.scrappNationalites()
+        nationalites = self.scrappJoueur.scrappInfoPerso.scrappNationalites()
         self.assertEqual(len(nationalites), 1)
         pays = nationalites[0]
         self.assertEqual(pays.code, "CL")
 
     def testScrappPiedFort(self):
-        html = self.scrappJoueur.getHTML()
-        infoTable = self.scrappJoueur.getInfoTableJoueur()
-        piedFort = self.scrappJoueur.scrappPiedFort()
+        piedFort = self.scrappJoueur.scrappInfoPerso.scrappPiedFort()
         self.assertEqual(piedFort, "droit")
 
     def testScrappTaille(self):
-        html = self.scrappJoueur.getHTML()
-        infoTable = self.scrappJoueur.getInfoTableJoueur()
-        taille = self.scrappJoueur.scrappTaile()
+        taille = self.scrappJoueur.scrappInfoPerso.scrappTaile()
         self.assertEqual(taille, "169")
 
     def testScrappEquipementier(self):
-        html = self.scrappJoueur.getHTML()
-        infoTable = self.scrappJoueur.getInfoTableJoueur()
-        equipementier = self.scrappJoueur.scrappEquipementierActuel()
+        equipementier = self.scrappJoueur.scrappInfoPerso.scrappEquipementierActuel()
         self.assertEqual(equipementier, "Nike")
 
     def testScrappPositions(self):
-        html = self.scrappJoueur.getHTML()
-        postes = self.scrappJoueur.scrappPositions()
+        postes = self.scrappJoueur.scrappInfoPerso.scrappPostesJoueur()
         self.assertEqual(len(postes), 3)
         # TODO : peut-être rajouter des tests
 
     def testScrappDateFinContratActuel(self):
-        html = self.scrappJoueur.getHTML()
-        infoTable = self.scrappJoueur.getInfoTableJoueur()
-        dateFinContratActuel = self.scrappJoueur.scrappDateFinContratActuel()
+        dateFinContratActuel = self.scrappJoueur.scrappInfoPerso.scrappDateFinContratActuel()
         self.assertEqual(dateFinContratActuel, "2023-06-30")
 
 if __name__ == '__main__':

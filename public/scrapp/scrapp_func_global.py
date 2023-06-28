@@ -43,14 +43,6 @@ transfermarkt_capacite_stade_find = 'Capacité totale'
 transfermarkt_construction_stade_find = 'Date de construction'
 transfermarkt_box_adresse_stade_find = 'Contact'
 transfermarkt_adresse_stade_find = 'Adresse'
-TM_JOUEUR_NOM_COMPLET_LABEL_TEXT = 'Nom'
-TM_JOUEUR_NAISSANCE_LABEL_TEXT = 'Date de naissance'
-TM_JOUEUR_TAILLE_LABEL_TEXT = 'Taille'
-TM_JOUEUR_NATIONALITES_LABEL_TEXT = 'Nationalité'
-TM_JOUEUR_PIED_FORT_LABEL_TEXT = 'Pied'
-TM_JOUEUR_EQUIPEMENTIER_LABEL_TEXT = 'Équipementier'
-TM_JOUEUR_PRETE_DATE_FIN_CONTRAT_ACTUEL_LABEL_TEXT = 'En contrat là-bas'
-TM_JOUEUR_DATE_FIN_CONTRAT_ACTUEL_LABEL_TEXT = 'Contrat jusqu’à'
 
 class_css_position_principale_start = 'position__primary--'
 class_css_position_secondaire_start = 'position__secondary--'
@@ -81,21 +73,3 @@ montant_abrev_valeur = {
     "K": 1e3,
     "mio.": 1e6
 }
-
-"""
-    Fonction permettant de renommer certains pays afin de ne pas foutre le zbeul côté enregistrement dans la BD
-    TODO : D'ailleurs voir si cette fonction n'a pas plus de sens d'être du côté du PHP ! 
-    Entrée :
-        - pays, nom du pays scrapp
-    Sortie : 
-        - pays, nom du pays scrapp normalement présent dans la bd
-"""
-def triNation(pays):
-    if pays is not None:
-        if pays == 'Angleterre':
-            return 'Royaume-Uni'
-        elif pays == 'RD Congo':
-            return 'République Démocratique Du Congo'
-        elif pays == 'Russie':
-            return 'Fédération De Russie'
-    return pays
