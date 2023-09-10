@@ -9,7 +9,10 @@ class ImageStade:
         if schema == 'persist.Joueur':
             json = {}
         else:
-            json = {}
+            json = {
+                "id": self.id,
+                "lien": self.lien
+            }
 
         return json
 

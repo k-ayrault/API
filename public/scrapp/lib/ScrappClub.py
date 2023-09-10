@@ -7,6 +7,7 @@ from datetime import datetime
 from scrapp_func_global import headers
 
 from lib.configScrapp import *
+from lib.ScrappStade import ScrappStade
 from lib.Classes.Club import Club
 from lib.Classes.CouleurClub import CouleurClub
 from lib.Classes.LogoClub import LogoClub
@@ -28,9 +29,12 @@ class ScrappClub:
     # Div contenant les infos du club
     boxInfo = None
 
+    scrappStade = None
+
     def __init__(self, idTransferMarkt: int, lienTransferMarkt: str) -> None:
         self.idTransferMarkt = idTransferMarkt
         self.club.idTransferMarkt = self.idTransferMarkt
+        self.scrappStade = ScrappStade(lienTransferMarkt=lienTransferMarkt)
         self.lienTransferMarkt = lienTransferMarkt.replace(
             TM_URL_REPLACE, TM_URL_INFO_CLUB)
         self.getHTML()
@@ -310,6 +314,7 @@ class ScrappClub:
 
     def scrapp(self) -> Club:
         # TODO : check if exists in api
+
         self.scrappNomClub()
         self.scrappAdresseClub()
         self.scrappPaysClub()
@@ -318,6 +323,8 @@ class ScrappClub:
         self.scrappCouleursClub()
         self.scrappLogoPrincipalClub()
         self.scrappLogosClub()
+        self.club.stade = self.scrappStade.scrapp()
+        self.club.stade.pays = self.club.pays
 
         # TODO : save in api
 
