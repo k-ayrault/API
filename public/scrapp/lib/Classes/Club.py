@@ -1,5 +1,6 @@
 from lib.Classes.Pays import Pays
 from lib.Classes.Stade import Stade
+from lib.Classes.CouleurClub import CouleurClub
 from lib.Classes.LogoClub import LogoClub
 
 class Club:
@@ -9,6 +10,7 @@ class Club:
     pays = Pays()
     dateCreation = None
     siteWeb = None
+    couleurs = []
     logos = []
     idTransferMarkt = None
     stade = Stade()
@@ -34,6 +36,7 @@ class Club:
         self.id = Pays().fromJson(json=json['pays']) if json.get('pays') else self.pays
         self.dateCreation = json['date_creation'] if json.get('date_creation') else self.dateCreation
         self.siteWeb = json['site_web'] if json.get('site_web') else self.siteWeb
+        self.couleurs = [CouleurClub().fromJson(json=couleur) for couleur in json['couleurs']] if json.get('couleurs') else self.couleurs
         self.logos = [LogoClub().fromJson(json=logo) for logo in json['logos']] if json.get('logos') else self.logos
         self.idTransferMarkt = json['id_transfermarkt'] if json.get('id_transfermarkt') else self.idTransferMarkt
         self.stade = Stade().fromJson(json=json['stade']) if json.get('stade') else self.stade
