@@ -9,7 +9,7 @@ class InformationsPersonellesTemp(InformationsPersonelles):
         super().__init__()
         self.informationsPersonelles = informationsPersonelles
 
-    def toJson(self, schema: str) -> dict:
+    def toJson(self, schema: str = "") -> dict:
         if schema in ['persist.InformationsPersonellesTemp']:
             json = {
                 "nom_complet": self.nomComplet,

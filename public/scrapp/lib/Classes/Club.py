@@ -19,7 +19,10 @@ class Club:
         if schema == 'persist.Joueur':
             json = {}
         else :
-            json = {}
+            json = {
+                "id": self.id,
+                "nom": self.nom
+            }
         
         return json
 

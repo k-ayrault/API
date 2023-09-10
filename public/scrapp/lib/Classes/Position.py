@@ -5,7 +5,7 @@ class Position:
     def __init__(self):
         pass
     
-    def toJson(self, schema: str) -> dict:
+    def toJson(self, schema: str = "") -> dict:
         if schema == 'persist.Joueur':
             json = {}
         else :

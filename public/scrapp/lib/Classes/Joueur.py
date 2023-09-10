@@ -13,7 +13,7 @@ class Joueur:
     def __init__(self):
         pass
 
-    def toJson(self, schema: str):
+    def toJson(self, schema: str = ""):
         if schema == 'persist.Joueur':
             json = {
                 "id_transfermarkt": self.idTransfermarkt,
