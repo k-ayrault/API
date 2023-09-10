@@ -16,6 +16,9 @@ class LogoClub
     #[ORM\Column(type: 'string', length: 255)]
     private $lien;
 
+    #[ORM\Column(type: 'boolean')]
+    private $principal;
+
     #[ORM\ManyToOne(targetEntity: Club::class, inversedBy: 'logos', cascade: ['persist'])]
     private $club;
 
@@ -52,4 +55,16 @@ class LogoClub
 
         return $this;
     }
+
+    public function isPrincipal(): ?bool
+    {
+        return $this->principal;
+    }
+
+    public function setPrincipal(bool $principal): self
+    {
+        $this->principal = $principal;
+
+        return $this;
+    } 
 }
