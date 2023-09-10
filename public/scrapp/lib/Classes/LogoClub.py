@@ -10,7 +10,11 @@ class LogoClub:
         if schema == 'persist.Joueur':
             json = {}
         else:
-            json = {}
+            json = {
+                "id": self.id,
+                "lien": self.lien,
+                "principal": self.principal
+            }
             
         return json
 

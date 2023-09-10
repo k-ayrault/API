@@ -9,7 +9,10 @@ class CouleurClub:
         if schema == 'persist.Joueur':
             json = {}
         else:
-            json = {}
+            json = {
+                "id": self.id,
+                "hexa": self.hexa
+            }
             
         return json
 

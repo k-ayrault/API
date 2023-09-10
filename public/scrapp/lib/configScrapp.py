@@ -4,6 +4,8 @@
 TM_URL = "https://www.transfermarkt.fr"
 TM_URL_TRANSFERTS = "transfers"
 TM_URL_REPLACE = "{page_transfermarkt}"
+TM_URL_INFO_CLUB = "datenfakten"
+TM_URL_INFO_STADE_CLUB = "stadion"
 
 """
     LABEL INFOS PERSO
@@ -33,3 +35,15 @@ TM_LIBELLE_PAUSE_CARRIERE = "Pause carrière"
 TM_LIBELLE_FIN_DE_PRET = "Fin du prêt"
 TM_LIBELLE_TRANSFERT_LIBRE = "Tr. libre"
 TM_LIBELLE_PAS_DE_MOUVEMENT = "-"
+
+
+"""
+    INFOS CLUB
+"""
+TM_BOX_INFO_CLUB = "Informations et faits"
+TM_BOX_INFO_NOM_CLUB = "Nom officiel du club"
+TM_BOX_INFO_ADRESSE_CLUB = "Adresse"
+TM_BOX_INFO_SITE_CLUB = "Page d'accueil"
+TM_BOX_INFO_CREATION_CLUB = "Fondation"
+TM_BOX_INFO_COULEURS_CLUB = "Couleurs de club"
+TM_BOX_INFO_LOGOS_CLUB = "Tous les sommets historiques"
