@@ -47,3 +47,12 @@ TM_BOX_INFO_SITE_CLUB = "Page d'accueil"
 TM_BOX_INFO_CREATION_CLUB = "Fondation"
 TM_BOX_INFO_COULEURS_CLUB = "Couleurs de club"
 TM_BOX_INFO_LOGOS_CLUB = "Tous les sommets historiques"
+
+"""
+    INFOS STADE
+"""
+TM_LIBELLE_NOM_STADE = "Nom du stade"
+TM_LIBELLE_CAPACITE_STADE = "Capacité totale"
+TM_LIBELLE_CONSTRUCTION_STADE = "Date de construction"
+TM_LIBELLE_BOX_ADRESSE_STADE = "Contact"
+TM_LIBELLE_ADRESSE_STADE = "Adresse"

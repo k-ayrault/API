@@ -90,7 +90,7 @@ class ScrappClub:
         except Exception as e:
             print(
                 f"Une erreur est survenu lors de la récupération de la section contenant les informations du club : {e} !")
-        return
+        return None
 
     """
         Fonction récupérant le nom du club
