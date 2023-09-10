@@ -10,10 +10,25 @@ class Transfert extends Contrat
 {
 
     #[ORM\Column(type: 'boolean')]
+    private $club_formateur;
+
+    #[ORM\Column(type: 'boolean')]
     private $libre;
 
     #[ORM\Column(type: 'integer', nullable: true)]
     private $montant;
+    
+    public function isClubFormateur(): ?bool
+    {
+        return $this->club_formateur;
+    }
+
+    public function setClubFormateur(bool $club_formateur): self
+    {
+        $this->club_formateur = $club_formateur;
+
+        return $this;
+    }
 
     public function isLibre(): ?bool
     {
@@ -25,7 +40,7 @@ class Transfert extends Contrat
         $this->libre = $libre;
 
         return $this;
-    }
+    } 
 
     public function getMontant(): ?int
     {
