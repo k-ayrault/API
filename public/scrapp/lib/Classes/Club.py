@@ -5,6 +5,7 @@ from lib.Classes.LogoClub import LogoClub
 class Club:
     id = None
     nom = None
+    adresse = None
     pays = Pays()
     dateCreation = None
     siteWeb = None
@@ -29,6 +30,7 @@ class Club:
     def fromJson(self, json: dict):
         self.id = json['id'] if json.get('id') else self.id
         self.nom = json['nom'] if json.get('nom') else self.nom
+        self.adresse = json['adresse'] if json.get('adresse') else self.adresse
         self.id = Pays().fromJson(json=json['pays']) if json.get('pays') else self.pays
         self.dateCreation = json['date_creation'] if json.get('date_creation') else self.dateCreation
         self.siteWeb = json['site_web'] if json.get('site_web') else self.siteWeb
