@@ -13,23 +13,20 @@ from lib.Classes.ImageStade import ImageStade
 
 class ScrappStade:
 
-    stade = Stade()
-
-    # Lien TransferMarkt du stade du club que l'on scrapp
-    lienTransferMarkt = ""
-
-    # HTML de la page TransferMarkt du stade du club que l'on scrapp
-    htmlTransferMarkt = None
-
-    # Div contenant les infos du stade
-    boxInfo = None
-
     def __init__(self, lienTransferMarkt: str) -> None:
+        self.stade = Stade()
+        # Lien TransferMarkt du stade du club que l'on scrapp
+        self.lienTransferMarkt = ""
+        # HTML de la page TransferMarkt du stade du club que l'on scrapp
+        self.htmlTransferMarkt = None
+        # Div contenant les infos du stade
+        self.boxInfo = None
+
         self.lienTransferMarkt = lienTransferMarkt.replace(
             TM_URL_REPLACE, TM_URL_INFO_STADE_CLUB)
+        
         self.getHTML()
         self.getBoxInfo()
-        pass
 
     """
         Fonction qui récupère l'HTML de la page TransferMarkt du stade et le BeautifulSoup

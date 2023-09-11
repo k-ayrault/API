@@ -12,32 +12,24 @@ from lib.Classes.InformationsPersonelles import InformationsPersonelles
 from lib.Exception.PaysNotFoundException import PaysNotFoundException
 
 class ScrappJoueurInfoPerso:
-
-    # Id TransferMarkt du joueur que l'on scrapp
-    idJoueurTransferMarkt = -1
-
-    # HTML de la page TransferMarkt du joueur que l'on scrapp
-    htmlTransferMarktJoueur = None
     
-    # Header de la page du joueur
-    headerTransferMarktJoueur = None
-
-    # Table HTML où sont stockée les informations "personnelles" du joueur
-    infoTableTransferMarktJoueur = None
-
-    informationsPersonelles = InformationsPersonelles()
-    
-    api = None
-
-    def __init__(self, html, idJoueurTransferMarkt: int, idInfoPerso:int, api:ApiChourmOlympique):
+    def __init__(self, htmlTransferMarkt, idTransferMarkt: int, idInfoPerso:int, api:ApiChourmOlympique):
         self.api = api
-        self.htmlTransferMarktJoueur = html
-        self.idJoueurTransferMarkt = idJoueurTransferMarkt
+        self.htmlTransferMarkt = htmlTransferMarkt
+        self.idTransferMarkt = idTransferMarkt
+
+        self.informationsPersonelles = InformationsPersonelles()
         self.informationsPersonelles.id = idInfoPerso
         
+        # Header de la page du joueur
+        self.headerTransferMarktJoueur = None
+
+        # Table HTML où sont stockée les informations "personnelles" du joueur
+        self.infoTableTransferMarktJoueur = None
+
+
         self.getHeaderInfoJoueur()
         self.getInfoTableJoueur()
-        
 
     """
         Fonction qui récupère le header du joueur sur sa page TransferMarkt où est notamment son nom et son prénom "différenciés".
@@ -48,13 +40,13 @@ class ScrappJoueurInfoPerso:
     def getHeaderInfoJoueur(self):
         try:
             # Récupération de la div contenant ces infos
-            self.headerTransferMarktJoueur = self.htmlTransferMarktJoueur.find(
+            self.headerTransferMarktJoueur = self.htmlTransferMarkt.find(
                 "main").find("header", {"class": "data-header"})
 
             return self.headerTransferMarktJoueur
         except Exception as exception:
             logging.error(
-                f"[ERROR] Un problème a été rencontré lors de la récupération du header sur la page du joueur TransferMarkt n°{self.idJoueurTransferMarkt} : {exception}  ")
+                f"[ERROR] Un problème a été rencontré lors de la récupération du header sur la page du joueur TransferMarkt n°{self.idTransferMarkt} : {exception}  ")
             return None
 
     """
@@ -66,7 +58,7 @@ class ScrappJoueurInfoPerso:
     def getInfoTableJoueur(self):
         try:
             # Récupération de la div contenant les données du joueur (le body de la page du joueur en somme)
-            body = self.htmlTransferMarktJoueur.find(
+            body = self.htmlTransferMarkt.find(
                 "div", {"id": "subnavi"}).find_next_sibling("div", {"class": "row"})
             # Récupération du tableau contenant les informations personnelles du joueur
             self.infoTableTransferMarktJoueur = body.find(
@@ -75,7 +67,7 @@ class ScrappJoueurInfoPerso:
             return self.infoTableTransferMarktJoueur
         except Exception as exception:
             logging.error(
-                f"[ERROR] Un problème a été rencontré lors de la récupération de la 'table' contenant les infos du joueur {self.idJoueurTransferMarkt} sur sa page TransferMarkt : {exception}  ")
+                f"[ERROR] Un problème a été rencontré lors de la récupération de la 'table' contenant les infos du joueur {self.idTransferMarkt} sur sa page TransferMarkt : {exception}  ")
             return None
 
     """
@@ -132,7 +124,7 @@ class ScrappJoueurInfoPerso:
             return nom, prenom
         except Exception as exception:
             logging.error(
-                f"[ERROR] Un problème a été rencontré lors de la récupération du nom et prénom du joueur {self.idJoueurTransferMarkt} sur sa page TransferMarkt : {exception}  ")
+                f"[ERROR] Un problème a été rencontré lors de la récupération du nom et prénom du joueur {self.idTransferMarkt} sur sa page TransferMarkt : {exception}  ")
             return None
 
     """
@@ -156,7 +148,7 @@ class ScrappJoueurInfoPerso:
 
         except Exception as exception:
             logging.error(
-                f"[ERROR] Un problème a été rencontré lors de la récupération du nom complet du joueur {self.idJoueurTransferMarkt} sur sa page TransferMarkt : {exception}  ")
+                f"[ERROR] Un problème a été rencontré lors de la récupération du nom complet du joueur {self.idTransferMarkt} sur sa page TransferMarkt : {exception}  ")
             return None
 
     """
@@ -183,7 +175,7 @@ class ScrappJoueurInfoPerso:
 
         except Exception as exception:
             logging.error(
-                f"[ERROR] Un problème a été rencontré lors de la récupération de la date de naissance du joueur {self.idJoueurTransferMarkt} sur sa page TransferMarkt : {exception}  ")
+                f"[ERROR] Un problème a été rencontré lors de la récupération de la date de naissance du joueur {self.idTransferMarkt} sur sa page TransferMarkt : {exception}  ")
             return None
 
     """
@@ -218,7 +210,7 @@ class ScrappJoueurInfoPerso:
 
         except Exception as exception:
             logging.error(
-                f"[ERROR] Un problème a été rencontré lors de la récupération de(s) nationalite(s) du joueur {self.idJoueurTransferMarkt} sur sa page TransferMarkt : {exception}  ")
+                f"[ERROR] Un problème a été rencontré lors de la récupération de(s) nationalite(s) du joueur {self.idTransferMarkt} sur sa page TransferMarkt : {exception}  ")
             return None
 
     """
@@ -242,7 +234,7 @@ class ScrappJoueurInfoPerso:
 
         except Exception as exception:
             logging.error(
-                f"[ERROR] Un problème a été rencontré lors de la récupération du pied fort du joueur {self.idJoueurTransferMarkt} sur sa page TransferMarkt : {exception}  ")
+                f"[ERROR] Un problème a été rencontré lors de la récupération du pied fort du joueur {self.idTransferMarkt} sur sa page TransferMarkt : {exception}  ")
             return None
 
     """
@@ -267,7 +259,7 @@ class ScrappJoueurInfoPerso:
             return taille
         except Exception as exception:
             logging.error(
-                f"[ERROR] Un problème a été rencontré lors de la récupération de la taille du joueur {self.idJoueurTransferMarkt} sur sa page TransferMarkt : {exception}  ")
+                f"[ERROR] Un problème a été rencontré lors de la récupération de la taille du joueur {self.idTransferMarkt} sur sa page TransferMarkt : {exception}  ")
             return None
 
     """
@@ -289,7 +281,7 @@ class ScrappJoueurInfoPerso:
             return equipementier
         except Exception as exception :
             logging.error(
-                f"[ERROR] Un problème a été rencontré lors de la récupération de l'équipementier du joueur {self.idJoueurTransferMarkt} sur sa page TransferMarkt : {exception}  ")
+                f"[ERROR] Un problème a été rencontré lors de la récupération de l'équipementier du joueur {self.idTransferMarkt} sur sa page TransferMarkt : {exception}  ")
             return None
 
     """
@@ -303,9 +295,9 @@ class ScrappJoueurInfoPerso:
     def scrappPostesJoueur(self):
         try :
             # Récupération de la div contenant les différentes positions du joueur (point sur le terrain)
-            boxPositions = self.htmlTransferMarktJoueur.find("div", {"class": "detail-position__matchfield"})
+            boxPositions = self.htmlTransferMarkt.find("div", {"class": "matchfield__campo"})
 
-            spanPositions = boxPositions.findAll("span", { "class" : "position" })
+            spanPositions = boxPositions.findAll("div", { "class" : "position" })
 
             postes = []
 
@@ -313,20 +305,20 @@ class ScrappJoueurInfoPerso:
                 posteJoueur = PosteJoueur()
 
                 # On récupère le type de la position que l'on traite
-                if "position__primary" in spanPosition["class"] : # Position principale
-                    classTypePosition = "position__primary"
-                elif "position__secondary" in spanPosition["class"] : # Position secondaire
-                    classTypePosition = "position__secondary"
+                if "position--primary" in spanPosition["class"] : # Position principale
+                    classTypePosition = "position--primary"
+                elif "position--secondary" in spanPosition["class"] : # Position secondaire
+                    classTypePosition = "position--secondary"
                 else : 
                     continue
 
                 # Création du début de la class contenant l'identifiant de la position
-                debutClassPosition = classTypePosition + "--"
+                debutClassPosition = "position--"
 
                 # Récupération de la class contenant l'identifiant de la position
                 classPosition = [
                     class_type for class_type in spanPosition["class"]
-                    if debutClassPosition in class_type
+                    if debutClassPosition in class_type and class_type.replace(debutClassPosition, "").isnumeric()
                 ]
                 # Si plus d'une class est retourné pour la class contenant l'identifiant de la position on passe à la prochaine position car pas normal
                 if len(classPosition) != 1 :
@@ -340,9 +332,9 @@ class ScrappJoueurInfoPerso:
                 posteJoueur.poste = poste
 
                 # Ajout de la position dans le bon tableau
-                if classTypePosition == "position__primary" :
+                if classTypePosition == "position--primary" :
                     posteJoueur.principale = True
-                elif classTypePosition == "position__secondary" :
+                elif classTypePosition == "position--secondary" :
                     posteJoueur.principale = False
 
                 postes.append(posteJoueur)
@@ -351,7 +343,7 @@ class ScrappJoueurInfoPerso:
 
         except Exception as exception :
             logging.error(
-                f"[ERROR] Un problème a été rencontré lors de la récupération des postes du joueur {self.idJoueurTransferMarkt} sur sa page TransferMarkt : {exception}  ")
+                f"[ERROR] Un problème a été rencontré lors de la récupération des postes du joueur {self.idTransferMarkt} sur sa page TransferMarkt : {exception}  ")
             return None
 
     """
@@ -384,7 +376,7 @@ class ScrappJoueurInfoPerso:
             return self.dateFinContratActuel
         except Exception as exception :
             logging.error(
-                f"[ERROR] Un problème a été rencontré lors de la récupération de la date de fin du contrat actuel du joueur {self.idJoueurTransferMarkt} sur sa page TransferMarkt : {exception}  ")
+                f"[ERROR] Un problème a été rencontré lors de la récupération de la date de fin du contrat actuel du joueur {self.idTransferMarkt} sur sa page TransferMarkt : {exception}  ")
             return None
         
     def scrapp(self):

@@ -15,31 +15,25 @@ from lib.Classes.LogoClub import LogoClub
 
 class ScrappClub:
 
-    club = Club()
-
-    # Id TransferMarkt du club que l'on scrapp
-    idTransferMarkt = -1
-
-    # Lien TransferMarkt du club que l'on scrapp
-    lienTransferMarkt = ""
-
-    # HTML de la page TransferMarkt du club que l'on scrapp
-    htmlTransferMarkt = None
-
-    # Div contenant les infos du club
-    boxInfo = None
-
-    scrappStade = None
-
     def __init__(self, idTransferMarkt: int, lienTransferMarkt: str) -> None:
+        # Id TransferMarkt que l'on scrapp
         self.idTransferMarkt = idTransferMarkt
+        # Club que l'on scrapp
+        self.club = Club()
         self.club.idTransferMarkt = self.idTransferMarkt
+        # Classe de scrapp d'un stade
         self.scrappStade = ScrappStade(lienTransferMarkt=lienTransferMarkt)
+        # HTML de la page TransferMarkt du club que l'on scrapp
+        self.htmlTransferMarkt = None
+        # Div contenant les infos du club
+        self.boxInfo = None
+
         self.lienTransferMarkt = lienTransferMarkt.replace(
             TM_URL_REPLACE, TM_URL_INFO_CLUB)
+        
         self.getHTML()
+        
         self.getBoxInfo()
-        pass
 
     """
         Fonction qui récupère l'HTML de la page TransferMarkt du club et le BeautifulSoup
@@ -230,6 +224,7 @@ class ScrappClub:
     """
     def scrappCouleursClub(self) -> list:
         try:
+            self.club.couleurs = []
             # Récupération de la ligne contenant les couleurs du clubs
             ligneCouleurs = self.boxInfo.find("th", text=re.compile(
                 TM_BOX_INFO_COULEURS_CLUB)).find_parent("tr")

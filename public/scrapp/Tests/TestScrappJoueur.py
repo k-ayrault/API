@@ -11,7 +11,7 @@ class TestScrappJoueur(unittest.TestCase):
         cls.lienJoueurTransfermarkt = f"https://www.transfermarkt.fr/alexis-sanchez/{transfermarkt_url_replace}/spieler/40433"
 
         cls.scrappJoueur = ScrappJoueur(
-            idJoueurTransferMarkt=cls.idJoueurTransfermarkt, lienJoueurTransferMarkt=cls.lienJoueurTransfermarkt)
+            idTransferMarkt=cls.idJoueurTransfermarkt, lienJoueurTransferMarkt=cls.lienJoueurTransfermarkt)
 
     def testGetHTMLSuccessfull(self):
         html = self.scrappJoueur.getHTML()
@@ -59,11 +59,10 @@ class TestScrappJoueur(unittest.TestCase):
     def testScrappPositions(self):
         postes = self.scrappJoueur.scrappInfoPerso.scrappPostesJoueur()
         self.assertEqual(len(postes), 3)
-        # TODO : peut-être rajouter des tests
 
     def testScrappDateFinContratActuel(self):
         dateFinContratActuel = self.scrappJoueur.scrappInfoPerso.scrappDateFinContratActuel()
-        self.assertEqual(dateFinContratActuel, "2023-06-30")
+        self.assertEqual(dateFinContratActuel, "2024-06-30")
 
 if __name__ == '__main__':
     unittest.main()

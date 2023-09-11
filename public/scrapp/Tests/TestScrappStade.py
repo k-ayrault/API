@@ -4,7 +4,7 @@ from lib.configScrapp import *
 from bs4 import BeautifulSoup
 
 
-class TestScrappClub(unittest.TestCase):
+class TestScrappStade(unittest.TestCase):
     @classmethod
     def setUp(cls):
         cls.idClubTransfermarkt = "244"
