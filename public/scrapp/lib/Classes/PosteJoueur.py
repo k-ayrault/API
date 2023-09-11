@@ -1,12 +1,14 @@
 from lib.Classes.Poste import Poste
 
 class PosteJoueur:
-    id = None
-    principale = False
-    poste = Poste()
+
+    def __new__(cls):
+        return super(PosteJoueur, cls).__new__(cls)
     
     def __init__(self):
-        pass
+        self.id = None
+        self.principale = False
+        self.poste = Poste()
 
     def toJson(self, schema: str = "") -> dict:
         if schema == 'persist.Joueur':

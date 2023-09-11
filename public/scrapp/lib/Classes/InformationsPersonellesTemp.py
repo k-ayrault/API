@@ -3,7 +3,9 @@ from lib.Classes.Pays import Pays
 
 
 class InformationsPersonellesTemp(InformationsPersonelles):
-    informationsPersonelles = InformationsPersonelles()
+
+    def __new__(cls):
+        return super(InformationsPersonellesTemp, cls).__new__(cls)
 
     def __init__(self, informationsPersonelles: InformationsPersonelles):
         super().__init__()

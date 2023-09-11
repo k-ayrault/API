@@ -5,19 +5,21 @@ from lib.Classes.LogoClub import LogoClub
 
 
 class Club:
-    id = None
-    nom = None
-    adresse = None
-    pays = Pays()
-    dateCreation = None
-    siteWeb = None
-    couleurs = []
-    logos = []
-    idTransferMarkt = None
-    stade = Stade()
+
+    def __new__(cls):
+        return super(Club, cls).__new__(cls)
 
     def __init__(self):
-        pass
+        self.id = None
+        self.nom = None
+        self.adresse = None
+        self.pays = Pays()
+        self.dateCreation = None
+        self.siteWeb = None
+        self.couleurs = []
+        self.logos = []
+        self.idTransferMarkt = None
+        self.stade = Stade()
 
     def toJson(self, schema: str = "") -> dict:
         if schema == 'persist.Joueur':

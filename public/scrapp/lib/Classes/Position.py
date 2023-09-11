@@ -1,9 +1,11 @@
 class Position:
-    id = None
-    nom = None
+
+    def __new__(cls):
+        return super(Position, cls).__new__(cls)
     
     def __init__(self):
-        pass
+        self.id = None
+        self.nom = None
     
     def toJson(self, schema: str = "") -> dict:
         if schema == 'persist.Joueur':

@@ -1,14 +1,16 @@
 from lib.Classes.Position import Position
 
 class Poste:
-    id = None
-    abreviation = None
-    nom = None
-    idTransferMarkt = None
-    position = Position()
+
+    def __new__(cls):
+        return super(Poste, cls).__new__(cls)
     
     def __init__(self):
-        pass
+        self.id = None
+        self.abreviation = None
+        self.nom = None
+        self.idTransferMarkt = None
+        self.position = Position()
 
     def toJson(self, schema:str) -> dict:
         if schema == 'persist.Joueur':

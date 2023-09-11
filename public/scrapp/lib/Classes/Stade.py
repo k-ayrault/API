@@ -2,16 +2,18 @@ from lib.Classes.Pays import Pays
 from lib.Classes.ImageStade import ImageStade
 
 class Stade:
-    id = None
-    nom = None
-    pays = Pays()
-    adresse = None
-    capacite = None
-    anneeConstruction = None
-    images = []
+
+    def __new__(cls):
+        return super(Stade, cls).__new__(cls)
     
     def __init__(self):
-        pass
+        self.id = None
+        self.nom = None
+        self.pays = Pays()
+        self.adresse = None
+        self.capacite = None
+        self.anneeConstruction = None
+        self.images = []
 
     def toJson(self, schema: dict) -> dict:
         if schema == 'persist.Joueur':

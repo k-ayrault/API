@@ -1,10 +1,12 @@
 class LogoClub:
-    id = None
-    lien = None
-    principal = False
+
+    def __new__(cls):
+        return super(LogoClub, cls).__new__(cls)
 
     def __init__(self):
-        pass
+        self.id = None
+        self.lien = None
+        self.principal = False
 
     def toJson(self, schema:str) -> dict:
         if schema == 'persist.Joueur':

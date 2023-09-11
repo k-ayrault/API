@@ -1,14 +1,15 @@
-from lib.Classes.Club import Club
 from lib.Classes.Contrat import Contrat
 
 
 class Pret(Contrat):
-    option_achat = False
 
-    montant_option = 0
+    def __new__(cls):
+        return super(Pret, cls).__new__(cls)
 
     def __init__(self):
-        pass
+        super().__init__()
+        self.option_achat = False
+        self.montant_option = 0
 
     def toJson(self, schema: str = '') -> dict:
         if schema == 'persist.Joueur':

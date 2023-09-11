@@ -1,11 +1,13 @@
 class Pays:
-    code = None
-    nom = None
-    drapeau = None
-    nomFR = None
+
+    def __new__(cls):
+        return super(Pays, cls).__new__(cls)
     
     def __init__(self):
-        pass
+        self.code = None
+        self.nom = None
+        self.drapeau = None
+        self.nomFR = None
 
     def toJson(self, schema:str) -> dict:
         if schema == 'persist.Joueur':

@@ -1,13 +1,15 @@
 from lib.Classes.Club import Club
 
 class Contrat:
-    id = None
-    debut = None
-    fin = None
-    club = Club()
+
+    def __new__(cls):
+        return super(Contrat, cls).__new__(cls)
     
     def __init__(self):
-        pass
+        self.id = None
+        self.debut = None
+        self.fin = None
+        self.club = Club()
 
     def toJson(self, schema: str = "") -> dict:
         if schema == 'persist.Joueur':

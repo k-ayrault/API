@@ -4,14 +4,16 @@ from lib.Classes.Contrat import Contrat
 
 
 class Joueur:
-    id = None
-    idTransfermarkt = None
-    informationsPersonelles = InformationsPersonelles()
-    postes = []
-    contrats = []
+
+    def __new__(cls):
+        return super(Joueur, cls).__new__(cls)
 
     def __init__(self):
-        pass
+        self.id = None
+        self.idTransfermarkt = None
+        self.informationsPersonelles = InformationsPersonelles()
+        self.postes = []
+        self.contrats = []
 
     def toJson(self, schema: str = ""):
         if schema == 'persist.Joueur':

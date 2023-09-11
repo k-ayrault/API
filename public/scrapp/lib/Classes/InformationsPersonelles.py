@@ -2,19 +2,21 @@ from lib.Classes.Pays import Pays
 
 
 class InformationsPersonelles:
-    id = None
-    nomComplet = None
-    nom = None
-    prenom = None
-    dateNaissance = None
-    meilleurPied = None
-    taille = None
-    equipementier = None
-    nationalites = []
-    retraiteJoueur = None
+
+    def __new__(cls):
+        return super(InformationsPersonelles, cls).__new__(cls)
 
     def __init__(self):
-        pass
+        self.id = None
+        self.nomComplet = None
+        self.nom = None
+        self.prenom = None
+        self.dateNaissance = None
+        self.meilleurPied = None
+        self.taille = None
+        self.equipementier = None
+        self.nationalites = []
+        self.retraiteJoueur = None
 
     def toJson(self, schema: str = "") -> dict:
         if schema == 'persist.Joueur':

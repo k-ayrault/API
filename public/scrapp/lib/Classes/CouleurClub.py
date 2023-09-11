@@ -1,9 +1,11 @@
 class CouleurClub:
-    id = None
-    hexa = None
+    
+    def __new__(cls):
+        return super(CouleurClub, cls).__new__(cls)
 
     def __init__(self):
-        pass
+        self.id = None
+        self.hexa = None
 
     def toJson(self, schema:str) -> dict:
         if schema == 'persist.Joueur':

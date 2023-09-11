@@ -3,14 +3,14 @@ from lib.Classes.Contrat import Contrat
 
 class Transfert(Contrat):
 
-    club_formateur = False
-
-    libre = False
-
-    montant = 0
+    def __new__(cls):
+        return super(Transfert, cls).__new__(cls)
     
     def __init__(self):
-        pass
+        super().__init__()
+        self.club_formateur = False
+        self.libre = False
+        self.montant = 0
 
     def toJson(self, schema: str = "") -> dict:
         if schema == 'persist.Joueur':
