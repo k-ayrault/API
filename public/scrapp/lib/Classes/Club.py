@@ -44,7 +44,7 @@ class Club:
         self.id = json['id'] if json.get('id') else self.id
         self.nom = json['nom'] if json.get('nom') else self.nom
         self.adresse = json['adresse'] if json.get('adresse') else self.adresse
-        self.id = Pays().fromJson(
+        self.pays = Pays().fromJson(
             json=json['pays']) if json.get('pays') else self.pays
         self.dateCreation = json['date_creation'] if json.get(
             'date_creation') else self.dateCreation
