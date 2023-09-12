@@ -4,7 +4,7 @@ from datetime import datetime
 
 from lib.configScrapp import *
 from lib.functions import triNation
-from lib.ApiChourmOlympique import ApiChourmOlympique
+from lib.API.ApiClient import ApiClient
 
 from lib.Classes.PosteJoueur import PosteJoueur
 from lib.Classes.InformationsPersonelles import InformationsPersonelles
@@ -13,7 +13,7 @@ from lib.Exception.PaysNotFoundException import PaysNotFoundException
 
 class ScrappJoueurInfoPerso:
     
-    def __init__(self, htmlTransferMarkt, idTransferMarkt: int, idInfoPerso:int, api:ApiChourmOlympique):
+    def __init__(self, htmlTransferMarkt, idTransferMarkt: int, idInfoPerso:int, api:ApiClient):
         self.api = api
         self.htmlTransferMarkt = htmlTransferMarkt
         self.idTransferMarkt = idTransferMarkt

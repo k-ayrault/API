@@ -1,11 +1,11 @@
 import unittest
-from lib.ApiChourmOlympique import ApiChourmOlympique
+from lib.API.ApiClient import ApiClient
 from lib.Classes.Joueur import Joueur
 
 class TestApiChourmOlympique(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.api = ApiChourmOlympique()
+        cls.api = ApiClient()
 
     def testAuth(self):
         self.assertIsNotNone(self.api.token)

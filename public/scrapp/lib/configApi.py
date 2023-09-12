@@ -1,5 +1,5 @@
-API_LOGIN = "xxx"
-API_PASSWD = "xxx"
+API_LOGIN = "lescrapper"
+API_PASSWD = "3xI*1B92Tn2%Nm$B"
 
 METHOD_POST = "POST"
 METHOD_GET = "GET"
@@ -14,3 +14,8 @@ API_URL_INFORMATIONS_PERSONELLES_TEMP = f"{API_BASE_URL}/informations_personelle
 API_URL_GET_PAYS_BY_NOM_FR = f"{API_BASE_URL}/pays/byNom"
 API_URL_PAYS = f"{API_BASE_URL}/pays"
 API_URL_GET_POSTE_BY_ID_TM = f"{API_BASE_URL}/poste/transfermarkt"
+
+######
+#   Club
+######
+API_URL_GET_CLUB = f"{API_BASE_URL}/clubs"

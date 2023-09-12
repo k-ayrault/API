@@ -1,4 +1,4 @@
-from lib.ApiChourmOlympique import ApiChourmOlympique
+from lib.API.ApiClient import ApiClient
 
 from lib.Classes.Joueur import Joueur
 
@@ -15,7 +15,7 @@ class ScrappJoueur:
 
     def __init__(self, idTransferMarkt: int, lienJoueurTransferMarkt: str):
 
-        self.api = ApiChourmOlympique()
+        self.api = ApiClient()
         
         try :
             self.joueur = self.api.getJoueurByIdTransferMarkt(idTransfermarkt=idTransferMarkt)

@@ -5,17 +5,17 @@ from lib.Classes.Poste import Poste
 from lib.Exception.JoueurNotFoundException import JoueurNotFoundException
 from lib.Exception.PaysNotFoundException import PaysNotFoundException
 from lib.Exception.PosteNotFoundException import PosteNotFoundException
-from lib.config_api import *
+from lib.configApi import *
 import requests
 from http import HTTPStatus
 import sys
 from lib.Classes.Joueur import Joueur
 
 
-class ApiChourmOlympique:
-    token = None
+class ApiClient:
 
     def __init__(self):
+        self.token = None
         self.auth()
 
     def auth(self):
@@ -154,3 +154,6 @@ class ApiChourmOlympique:
         responseJson = response.json()
 
         return responseJson
+
+    def logout(self):
+        del self.token
