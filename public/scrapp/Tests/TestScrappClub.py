@@ -29,7 +29,7 @@ class TestScrappClub(unittest.TestCase):
     def testScrappPaysClub(self):
         paysClub = self.scrappClub.scrappPaysClub()
 
-        self.assertEqual(paysClub, 'France')
+        self.assertEqual(paysClub.code, 'FR')
 
     def testScrappAdresseClub(self):
         adresseClub = self.scrappClub.scrappAdresseClub()
