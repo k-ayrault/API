@@ -6,8 +6,15 @@ from datetime import datetime
 
 from scrapp_func_global import headers
 
+from lib.API.Clients.ClubClient import ClubClient
+from lib.API.Clients.PaysClient import PaysClient
+
+from lib.Exception.ClubNotFoundException import ClubNotFoundException
+from lib.Exception.PaysNotFoundException import PaysNotFoundException
+
 from lib.configScrapp import *
 from lib.ScrappStade import ScrappStade
+from lib.Classes.Pays import Pays
 from lib.Classes.Club import Club
 from lib.Classes.CouleurClub import CouleurClub
 from lib.Classes.LogoClub import LogoClub
@@ -27,6 +34,8 @@ class ScrappClub:
         self.htmlTransferMarkt = None
         # Div contenant les infos du club
         self.boxInfo = None
+
+        self.clubClient = ClubClient()
 
         self.lienTransferMarkt = lienTransferMarkt.replace(
             TM_URL_REPLACE, TM_URL_INFO_CLUB)
@@ -148,13 +157,21 @@ class ScrappClub:
 
     def scrappPaysClub(self) -> str:
         try:
+            paysClient = PaysClient()
             # Récupération de la ligne où l'adresse du club est
             ligneAdresse = self.boxInfo.find("th",
                                              text=re.compile(TM_BOX_INFO_ADRESSE_CLUB)).find_parent("tr")
            # Récupération de la ligne où le pays est, en déduisant qu'il s'agit de la troisième ligne de l'adresse donc deux tr plus loin que le premier de l'adresse
             ligne_pays_club = ligneAdresse.find_next_sibling().find_next_sibling()
-            # On déduit que le pays du club est au troisième tr de l'adresse
-            self.club.pays.nom = ligne_pays_club.find("td").text.strip()
+
+            nomFrPays = ligne_pays_club.find("td").text.strip()
+            pays = None
+            try : 
+                pays = paysClient.getPaysByNomFr(nomFr=nomFrPays)
+            except PaysNotFoundException as paysNotFound :
+                pays = Pays()
+
+            self.club.pays = pays
 
             return self.club.pays
 
@@ -308,7 +325,13 @@ class ScrappClub:
         return []
 
     def scrapp(self) -> Club:
-        # TODO : check if exists in api
+        # On récupère le club s'il existe via l'id TransferMarkt, sinon on le scrapp
+        try :
+            self.club = self.clubClient.getClubByIdTransferMarkt(self.idTransferMarkt)
+            
+            return self.club
+        except ClubNotFoundException as clubNotFound :
+            self.club = Club()
 
         self.scrappNomClub()
         self.scrappAdresseClub()
