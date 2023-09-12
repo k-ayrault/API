@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\LogoClubRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: LogoClubRepository::class)]
 class LogoClub
@@ -11,12 +12,15 @@ class LogoClub
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
+    #[Groups(['read.Club'])]
     private $id;
 
     #[ORM\Column(type: 'string', length: 255)]
+    #[Groups(['read.Club'])]
     private $lien;
 
     #[ORM\Column(type: 'boolean')]
+    #[Groups(['read.Club'])]
     private $principal;
 
     #[ORM\ManyToOne(targetEntity: Club::class, inversedBy: 'logos', cascade: ['persist'])]

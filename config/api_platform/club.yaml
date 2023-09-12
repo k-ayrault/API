@@ -1,0 +1,18 @@
+resources:
+  App\Entity\Club:
+    operations:
+      ApiPlatform\Metadata\GetCollection:
+        filters: ["club.id_transfermarkt_filter"]
+        normalizationContext:
+          groups: ["read.Club"]
+        openapi:
+          summary: Retrouve les club
+          description: ^
+            Retrouve les clubs
+          parameters:
+            - in: query
+              name: id_transfermarkt
+              schema:
+                type: integer
+              required: false
+              description: ID TransferMarkt du club

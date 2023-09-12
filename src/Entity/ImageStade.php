@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\ImageStadeRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ImageStadeRepository::class)]
 class ImageStade
@@ -11,9 +12,11 @@ class ImageStade
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
+    #[Groups(['read.Club'])]
     private $id;
 
     #[ORM\Column(type: 'string', length: 255)]
+    #[Groups(['read.Club'])]
     private $lien;
 
     #[ORM\ManyToOne(targetEntity: Stade::class, inversedBy: 'images', cascade: ['persist'])]

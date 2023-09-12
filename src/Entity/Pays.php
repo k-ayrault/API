@@ -12,19 +12,19 @@ class Pays
 
     #[ORM\Id]
     #[ORM\Column(name: 'code', type: 'string', length: 2, unique: true)]
-    #[Groups(['read.Pays', 'persist.Pays', 'persist.Joueur', 'get.Joueur', 'persist.InformationsPersonelles', 'persist.InformationsPersonellesTemp'])]
+    #[Groups(['read.Pays', 'persist.Pays', 'persist.Joueur', 'get.Joueur', 'persist.InformationsPersonelles', 'persist.InformationsPersonellesTemp', 'read.Club'])]
     private $code;
 
     #[ORM\Column(type: 'string', length: 255)]
-    #[Groups(['read.Pays', 'persist.Pays'])]
+    #[Groups(['read.Pays', 'persist.Pays', 'read.Club'])]
     private $nom;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    #[Groups(['read.Pays', 'persist.Pays'])]
+    #[Groups(['read.Pays', 'persist.Pays', 'read.Club'])]
     private $drapeau;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    #[Groups(['read.Pays', 'persist.Pays'])]
+    #[Groups(['read.Pays', 'persist.Pays', 'read.Club'])]
     private $nom_fr;
 
     public function getCode(): ?string

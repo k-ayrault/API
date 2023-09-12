@@ -6,6 +6,7 @@ use App\Repository\StadeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: StadeRepository::class)]
 class Stade
@@ -13,25 +14,32 @@ class Stade
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
+    #[Groups(['read.Club'])]
     private $id;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[Groups(['read.Club'])]
     private $nom;
 
     #[ORM\ManyToOne(targetEntity: Pays::class)]
     #[ORM\JoinColumn(referencedColumnName: 'code')]
+    #[Groups(['read.Club'])]
     private $pays;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[Groups(['read.Club'])]
     private $adresse;
 
     #[ORM\Column(type: 'integer', nullable: true)]
+    #[Groups(['read.Club'])]
     private $capacite;
 
     #[ORM\Column(type: 'integer', nullable: true)]
+    #[Groups(['read.Club'])]
     private $annee_construction;
 
     #[ORM\OneToMany(targetEntity: ImageStade::class, mappedBy: 'stade', cascade: ['persist', 'remove'], fetch: 'EAGER')]
+    #[Groups(['read.Club'])]
     private $images;
 
     public function __construct()

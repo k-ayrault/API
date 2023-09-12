@@ -17,38 +17,47 @@ class Club
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    #[Groups(['read.Pays'])]
+    #[Groups(['read.Pays', 'read.Club'])]
     private $id;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[Groups(['read.Club'])]
     private $nom;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[Groups(['read.Club'])]
     private $adresse;
 
     #[ORM\ManyToOne(targetEntity: Pays::class, cascade: ['persist'], fetch: 'EAGER')]
     #[ORM\JoinColumn(referencedColumnName: 'code')]
+    #[Groups(['read.Club'])]
     private $pays;
 
     #[ORM\Column(type: 'date', nullable: true)]
+    #[Groups(['read.Club'])]
     private $date_creation;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[Groups(['read.Club'])]
     private $site_web;
 
     #[ORM\OneToMany(targetEntity: LogoClub::class, mappedBy: 'club', cascade: ['persist', 'remove'], fetch: 'EAGER')]
+    #[Groups(['read.Club'])]
     private $logos;
 
     #[ORM\Column(type: 'integer', nullable: true)]
+    #[Groups(['read.Club'])]
     private $id_transfermarkt;
 
     #[ORM\ManyToOne(targetEntity: Stade::class, cascade: ['persist', 'remove'], fetch: 'EAGER')]
+    #[Groups(['read.Club'])]
     private $stade;
 
     #[JoinTable(name: 'club_couleur_club')]
     #[JoinColumn(name: 'club_id', referencedColumnName: 'id')]
     #[InverseJoinColumn(name: 'couleur_club_id', referencedColumnName: 'id')]
     #[ORM\ManyToMany(targetEntity: CouleurClub::class, cascade: ['persist'])]
+    #[Groups(['read.Club'])]
     private $couleurs;
 
     public function __construct()
