@@ -1,6 +1,7 @@
 import re
 import logging
 from datetime import datetime
+from lib.API.Clients.PaysClient import PaysClient
 
 from lib.configScrapp import *
 from lib.functions import triNation
@@ -186,7 +187,9 @@ class ScrappJoueurInfoPerso:
         """
     def scrappNationalites(self):
 
-        try:
+        try:            
+            paysClient = PaysClient()
+            
             # Récupération du span contenant les nationalités
             spanNationalite = self.getSpanValeurDansInfoTableViaLabel(labelText=TM_JOUEUR_NATIONALITES_LABEL_TEXT)
 
@@ -201,7 +204,7 @@ class ScrappJoueurInfoPerso:
                 # TODO : Test la modification et modifier le test correspondant
                 if nationalite :
                     try:
-                        pays = self.api.getPaysByNomFr(nomFr=nationalite)
+                        pays = paysClient.getPaysByNomFr(nomFr=nationalite)
                         self.informationsPersonelles.nationalites.append(pays)
                     except PaysNotFoundException as paysNotFoundException:
                         logging.error(f"[ERROR] Aucun pays n'a été trouvé via l'API pour le nom : {nationalite}")
