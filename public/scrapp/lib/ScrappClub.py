@@ -170,6 +170,7 @@ class ScrappClub:
                 pays = paysClient.getPaysByNomFr(nomFr=nomFrPays)
             except PaysNotFoundException as paysNotFound :
                 pays = Pays()
+                print(f"[ERROR] Aucun pays n'a été trouvé via l'API pour le nom : {nomFrPays}")
 
             self.club.pays = pays
 
