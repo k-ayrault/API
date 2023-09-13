@@ -23,7 +23,7 @@ class Poste:
                 "id": self.id,
                 "abreviation": self.abreviation,
                 "nom": self.nom,
-                "id_transfermarkt": self.idTransferMarkt,
+                "idTransfermarkt": self.idTransferMarkt,
                 "position": self.position.toJson(schema=schema)
             }
         
@@ -39,7 +39,7 @@ class Poste:
         self.id = json['id'] if json.get('id') else self.id
         self.abreviation = json['abreviation'] if json.get('abreviation') else self.abreviation
         self.nom = json['nom'] if json.get('nom') else self.nom
-        self.idTransferMarkt = json['id_transfermarkt'] if json.get('id_transfermarkt') else self.idTransferMarkt
+        self.idTransferMarkt = json['idTransfermarkt'] if json.get('idTransfermarkt') else self.idTransferMarkt
         self.position = Position().fromJson(json=json['position']) if json.get('position') else self.position
 
         return self

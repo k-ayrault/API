@@ -32,11 +32,11 @@ class Club:
                 "nom": self.nom,
                 "adresse": self.adresse,
                 "pays": f"/api/pays/{self.pays.code}" if self.pays.code is not None else None,
-                "date_creation": self.dateCreation,
-                "site_web": self.siteWeb,
+                "dateCreation": self.dateCreation,
+                "siteWeb": self.siteWeb,
                 "couleurs": [couleur.toJson(schema=schema) for couleur in self.couleurs],
                 "logos": [logo.toJson(schema=schema) for logo in self.logos],
-                "id_transfermarkt": self.idTransferMarkt,
+                "idTransfermarkt": int(self.idTransferMarkt) if self.idTransferMarkt is not None else None,
                 "stade": f"/api/stade/{self.stade.id}" if self.stade.id is not None else None
             }
         else:
@@ -45,11 +45,11 @@ class Club:
                 "nom": self.nom,
                 "adresse": self.adresse,
                 "pays": self.pays.toJson(schema=schema),
-                "date_creation": self.dateCreation,
-                "site_web": self.siteWeb,
+                "dateCreation": self.dateCreation,
+                "siteWeb": self.siteWeb,
                 "couleurs": [couleur.toJson(schema=schema) for couleur in self.couleurs],
                 "logos": [logo.toJson(schema=schema) for logo in self.logos],
-                "id_transfermarkt": self.idTransferMarkt,
+                "idTransfermarkt": self.idTransferMarkt,
                 "stade": self.stade.toJson(schema=schema) 
             }
 
@@ -68,16 +68,16 @@ class Club:
         self.adresse = json['adresse'] if json.get('adresse') else self.adresse
         self.pays = Pays().fromJson(
             json=json['pays']) if json.get('pays') else self.pays
-        self.dateCreation = json['date_creation'] if json.get(
-            'date_creation') else self.dateCreation
-        self.siteWeb = json['site_web'] if json.get(
-            'site_web') else self.siteWeb
+        self.dateCreation = json['dateCreation'] if json.get(
+            'dateCreation') else self.dateCreation
+        self.siteWeb = json['siteWeb'] if json.get(
+            'siteWeb') else self.siteWeb
         self.couleurs = [CouleurClub().fromJson(json=couleur)
                          for couleur in json['couleurs']] if json.get('couleurs') else self.couleurs
         self.logos = [LogoClub().fromJson(json=logo)
                       for logo in json['logos']] if json.get('logos') else self.logos
-        self.idTransferMarkt = json['id_transfermarkt'] if json.get(
-            'id_transfermarkt') else self.idTransferMarkt
+        self.idTransferMarkt = json['idTransfermarkt'] if json.get(
+            'idTransfermarkt') else self.idTransferMarkt
         self.stade = Stade().fromJson(
             json=json['stade']) if json.get('stade') else self.stade
 
