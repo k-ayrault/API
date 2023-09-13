@@ -9,6 +9,7 @@ class Joueur:
         return super(Joueur, cls).__new__(cls)
 
     def __init__(self):
+        self.uri = None
         self.id = None
         self.idTransfermarkt = None
         self.informationsPersonelles = InformationsPersonelles()
@@ -35,6 +36,12 @@ class Joueur:
         return json
 
     def fromJson(self, json: dict):
+        if isinstance(json, str) :
+            self.uri = json
+
+            return self
+        
+        self.uri = json['@id'] if json.get('@id') else self.uri
         self.id = json['id'] if json.get('id') else self.id
         self.idTransfermarkt = json['id_transfermarkt'] if json.get('id_transfermarkt') else self.idTransfermarkt
         self.informationsPersonelles.fromJson(json=json['informations_personnelles']) if json.get('informations_personnelles') else self.informationsPersonelles

@@ -4,12 +4,13 @@ class Pays:
         return super(Pays, cls).__new__(cls)
     
     def __init__(self):
+        self.uri = None
         self.code = None
         self.nom = None
         self.drapeau = None
         self.nomFR = None
 
-    def toJson(self, schema:str) -> dict:
+    def toJson(self, schema:str = "") -> dict:
         if schema == 'persist.Joueur':
             json = {
                 "code": self.code
@@ -19,6 +20,8 @@ class Pays:
                 "code": self.code,
                 "drapeau": self.drapeau
             }
+        elif schema == 'persist.Club':
+            json = self.uri
         else:
             json = {
                 "code": self.code,
@@ -29,6 +32,12 @@ class Pays:
         return json
 
     def fromJson(self, json: dict):
+        if isinstance(json, str) :
+            self.uri = json
+
+            return self
+        
+        self.uri = json['@id'] if json.get('@id') else self.uri
         self.code = json['code'] if json.get('code') else self.code
         self.nom = json['nom'] if json.get('nom') else self.nom
         self.drapeau = json['drapeau'] if json.get('drapeau') else self.drapeau

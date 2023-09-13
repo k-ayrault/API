@@ -4,12 +4,15 @@ from lib.Classes.CouleurClub import CouleurClub
 from lib.Classes.LogoClub import LogoClub
 
 
+import json as oejson
+
 class Club:
 
     def __new__(cls):
         return super(Club, cls).__new__(cls)
 
     def __init__(self):
+        self.uri = None
         self.id = None
         self.nom = None
         self.adresse = None
@@ -24,23 +27,42 @@ class Club:
     def toJson(self, schema: str = "") -> dict:
         if schema == 'persist.Joueur':
             json = {}
+        elif schema == 'persist.Club':
+            json = {
+                "nom": self.nom,
+                "adresse": self.adresse,
+                "pays": f"/api/pays/{self.pays.code}" if self.pays.code is not None else None,
+                "date_creation": self.dateCreation,
+                "site_web": self.siteWeb,
+                "couleurs": [couleur.toJson(schema=schema) for couleur in self.couleurs],
+                "logos": [logo.toJson(schema=schema) for logo in self.logos],
+                "id_transfermarkt": self.idTransferMarkt,
+                "stade": f"/api/stade/{self.stade.id}" if self.stade.id is not None else None
+            }
         else:
             json = {
                 "id": self.id,
                 "nom": self.nom,
                 "adresse": self.adresse,
                 "pays": self.pays.toJson(schema=schema),
-                "dateCreation": self.dateCreation,
-                "siteWeb": self.siteWeb,
+                "date_creation": self.dateCreation,
+                "site_web": self.siteWeb,
                 "couleurs": [couleur.toJson(schema=schema) for couleur in self.couleurs],
                 "logos": [logo.toJson(schema=schema) for logo in self.logos],
-                "idTransfermarkt": self.idTransferMarkt,
-                "stade": self.stade.toJson(schema=schema)
+                "id_transfermarkt": self.idTransferMarkt,
+                "stade": self.stade.toJson(schema=schema) 
             }
 
         return json
 
+
     def fromJson(self, json: dict):
+        if isinstance(json, str) :
+            self.uri = json
+
+            return self
+        
+        self.uri = json['@id'] if json.get('@id') else self.uri
         self.id = json['id'] if json.get('id') else self.id
         self.nom = json['nom'] if json.get('nom') else self.nom
         self.adresse = json['adresse'] if json.get('adresse') else self.adresse

@@ -7,7 +7,7 @@ class ImageStade:
         self.id = None
         self.lien = None
 
-    def toJson(self, schema:str) -> dict:
+    def toJson(self, schema:str = "") -> dict:
         if schema == 'persist.Joueur':
             json = {}
         else:
@@ -19,6 +19,12 @@ class ImageStade:
         return json
 
     def fromJson(self, json: dict):
+        if isinstance(json, str) :
+            self.uri = json
+
+            return self
+        
+        self.uri = json['@id'] if json.get('@id') else self.uri
         self.id = json['id'] if json.get('id') else self.id
         self.lien = json['lien'] if json.get('lien') else self.lien
 

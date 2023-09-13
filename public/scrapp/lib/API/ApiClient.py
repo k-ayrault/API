@@ -92,7 +92,7 @@ class ApiClient:
 
     def exec(self, method: str, url: str, params: dict):
         header = {
-            "Accept": "application/json",
+            "Accept": "application/ld+json",
             "Content-Type": "application/json"
         }
 

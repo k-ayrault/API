@@ -7,6 +7,7 @@ class InformationsPersonelles:
         return super(InformationsPersonelles, cls).__new__(cls)
 
     def __init__(self):
+        self.uri = None
         self.id = None
         self.nomComplet = None
         self.nom = None
@@ -33,7 +34,7 @@ class InformationsPersonelles:
             }
         elif schema == 'persist.InformationsPersonellesTemp':\
             json = {
-                "id": self.id
+                "id": self.uri
             }
         else:
             json = {
@@ -52,6 +53,12 @@ class InformationsPersonelles:
         return json
 
     def fromJson(self, json: dict):
+        if isinstance(json, str) :
+            self.uri = json
+
+            return self
+        
+        self.uri = json['@id'] if json.get('@id') else self.uri
         self.id = json['id'] if json.get('id') else self.id
         self.nomComplet = json['nom_complet'] if json.get('nom_complet') else self.nomComplet
         self.nom = json['nom'] if json.get('nom') else self.nom

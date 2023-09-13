@@ -6,6 +6,7 @@ class Contrat:
         return super(Contrat, cls).__new__(cls)
     
     def __init__(self):
+        self.uri = None
         self.id = None
         self.debut = None
         self.fin = None
@@ -20,6 +21,12 @@ class Contrat:
         return json
     
     def fromJson(self, json: dict):
+        if isinstance(json, str) :
+            self.uri = json
+
+            return self
+        
+        self.uri = json['@id'] if json.get('@id') else self.uri
         self.id = json['id'] if json.get('id') else self.id
         self.debut = json['debut'] if json.get('debut') else self.debut
         self.fin = json['fin'] if json.get('fin') else self.fin

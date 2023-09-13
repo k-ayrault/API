@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
 import re
+import json
 import validators
 from datetime import datetime
 
@@ -27,7 +28,6 @@ class ScrappClub:
         self.idTransferMarkt = idTransferMarkt
         # Club que l'on scrapp
         self.club = Club()
-        self.club.idTransferMarkt = self.idTransferMarkt
         # Classe de scrapp d'un stade
         self.scrappStade = ScrappStade(lienTransferMarkt=lienTransferMarkt)
         # HTML de la page TransferMarkt du club que l'on scrapp
@@ -174,12 +174,11 @@ class ScrappClub:
 
             self.club.pays = pays
 
-            return self.club.pays
-
         except Exception as e:
             print(
                 f"Un problème est survenu lors de la récupération du pays du club n°{self.idTransferMarkt} ({self.lienTransferMarkt}) : {e} !")
-        return None
+            
+        return self.club.pays
 
     """
         Fonction récupérant le lien vers le site du club
@@ -333,6 +332,7 @@ class ScrappClub:
             return self.club
         except ClubNotFoundException as clubNotFound :
             self.club = Club()
+            self.club.idTransferMarkt = self.idTransferMarkt
 
         self.scrappNomClub()
         self.scrappAdresseClub()
@@ -345,6 +345,6 @@ class ScrappClub:
         self.club.stade = self.scrappStade.scrapp()
         self.club.stade.pays = self.club.pays
 
-        # TODO : save in api
+        self.club = self.clubClient.postClub(self.club)
 
         return self.club

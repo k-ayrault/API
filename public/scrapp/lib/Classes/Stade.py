@@ -7,6 +7,7 @@ class Stade:
         return super(Stade, cls).__new__(cls)
     
     def __init__(self):
+        self.uri = None
         self.id = None
         self.nom = None
         self.pays = Pays()
@@ -15,9 +16,11 @@ class Stade:
         self.anneeConstruction = None
         self.images = []
 
-    def toJson(self, schema: dict) -> dict:
+    def toJson(self, schema: str = "") -> dict:
         if schema == 'persist.Joueur':
             json = {}
+        elif schema == 'persist.Club':
+            json = self.uri
         else:
             json = {
                 "id": self.id,
@@ -32,6 +35,12 @@ class Stade:
         return json
 
     def fromJson(self, json: dict):
+        if isinstance(json, str) :
+            self.uri = json
+
+            return self
+        
+        self.uri = json['@id'] if json.get('@id') else self.uri
         self.id = json['id'] if json.get('id') else self.id
         self.nom = json['nom'] if json.get('nom') else self.nom
         self.pays = Pays().fromJson(json=json['pays']) if json.get('pays') else self.pays

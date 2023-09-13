@@ -6,6 +6,7 @@ class PosteJoueur:
         return super(PosteJoueur, cls).__new__(cls)
     
     def __init__(self):
+        self.uri = None
         self.id = None
         self.principale = False
         self.poste = Poste()
@@ -26,6 +27,12 @@ class PosteJoueur:
         return json
 
     def fromJson(self, json: dict):
+        if isinstance(json, str) :
+            self.uri = json
+
+            return self
+        
+        self.uri = json['@id'] if json.get('@id') else self.uri
         self.id = json['id'] if json.get('id') else self.id
         self.principale = json['principal'] if json.get('principal') else self.principale
         self.poste = Poste().fromJson(json=json['poste']) if json.get('poste') else self.poste
