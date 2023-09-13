@@ -16,3 +16,7 @@ resources:
                 type: integer
               required: false
               description: ID TransferMarkt du club
+      ApiPlatform\Metadata\Post:
+        denormalizationContext:
+          groups: ["persist.Club"]
+        security: 'is_granted("ROLE_SCRAPP")'

@@ -14,7 +14,7 @@ class Stade
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    #[Groups(['read.Club'])]
+    #[Groups(['read.Club', 'persist.Club'])]
     private $id;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]

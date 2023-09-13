@@ -16,11 +16,11 @@ class LogoClub
     private $id;
 
     #[ORM\Column(type: 'string', length: 255)]
-    #[Groups(['read.Club'])]
+    #[Groups(['read.Club', 'persist.Club'])]
     private $lien;
 
     #[ORM\Column(type: 'boolean')]
-    #[Groups(['read.Club'])]
+    #[Groups(['read.Club', 'persist.Club'])]
     private $principal;
 
     #[ORM\ManyToOne(targetEntity: Club::class, inversedBy: 'logos', cascade: ['persist'])]

@@ -15,8 +15,8 @@ class CouleurClub
     #[Groups(['read.Club'])]
     private $id;
 
-    #[ORM\Column(type: 'string', length: 6, unique: true)]
-    #[Groups(['read.Club'])]
+    #[ORM\Column(type: 'string', length: 6)]
+    #[Groups(['read.Club', 'persist.Club'])]
     private $hexa;
 
     public function __construct(string $hexa)
