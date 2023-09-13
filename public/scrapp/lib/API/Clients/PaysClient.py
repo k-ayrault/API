@@ -7,6 +7,7 @@ from lib.Exception.PaysNotFoundException import PaysNotFoundException
 import sys
 import requests
 from http import HTTPStatus
+import json
 
 
 class PaysClient(ApiClient):
@@ -31,32 +32,31 @@ class PaysClient(ApiClient):
 
         try:
             responseJson = self.exec(
-                method=METHOD_GET, url=API_URL_GET_PAYS_BY_NOM_FR, params=params)
+                method=METHOD_GET, url=API_URL_GET_PAYS, params=params)
 
-            pays = Pays().fromJson(json=responseJson)
+            if responseJson['hydra:totalItems'] == 1:
+                pays = Pays().fromJson(json=responseJson['hydra:member'][0])
 
-            return pays
-        except requests.exceptions.HTTPError as httpError:
-            httpStatusCode = httpError.response.status_code  # Status code de la réponse HTTP
-            if httpStatusCode == HTTPStatus.NOT_FOUND:  # Si on aucun pays n'a été trouvé pour ce nom
+                return pays
+            else:
                 raise PaysNotFoundException(
-                    f"Aucun pays n'a été trouvé pour le nom FR : {nomFr}")
-            else:  # Si une erreur s'est produite
-                sys.exit(httpError)
+                    f"Aucun pays unique correspondant pour le nom FR : {nomFr}")
+        except requests.exceptions.HTTPError as httpError:
+            sys.exit(httpError)
 
     def postPays(self, pays: Pays):
         params = pays.toJson(schema="persist.Pays")
 
         try:
             responseJson = self.exec(
-                method=METHOD_POST, url=API_URL_PAYS, params=params)
+                method=METHOD_POST, url=API_URL_POST_PAYS, params=params)
 
         except requests.exceptions.HTTPError as httpError:
             sys.exit(httpError)
 
     def patchPays(self, pays: Pays, schema: str):
         params = pays.toJson(schema=schema)
-        url = f"{API_URL_PAYS}/{pays.code}"
+        url = f"{API_URL_PATCH_PAYS}/{pays.code}"
 
         try:
             responseJson = self.exec(

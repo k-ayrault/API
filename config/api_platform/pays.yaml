@@ -1,27 +1,24 @@
 resources:
     App\Entity\Pays:
         operations:
-            get_pays_by_nom_fr:
+            ApiPlatform\Metadata\GetCollection:
+                filters: ["pays.by_name"]
                 normalizationContext:
-                    groups: [ 'read.Pays' ]
-                class: ApiPlatform\Metadata\GetCollection # TODO : JSP PK IL FAUT GETCOLLECTION ICI JE DEVIENNE FOU
-                method: GET
-                uriTemplate: /pays/byNom
-                controller: App\Controller\ApiCustom\GetPaysByNomFr
+                    groups: ["read.Pays"]
                 openapi:
                     summary: Retrouve un pays via son nom français
                     description: ^
                         Retrouve un pays via son nom français
                     parameters:
-                        -   in: query
-                            name: nom_fr
-                            schema:
-                                type: string
-                            required: true
-                            description: Nom français du pays
+                        - in: query
+                          name: nom_fr
+                          schema:
+                              type: string
+                          required: false
+                          description: Nom français du pays
             ApiPlatform\Metadata\Post:
                 normalizationContext:
-                    groups: [ 'persist.Pays' ]
+                    groups: ["persist.Pays"]
                 security: 'is_granted("ROLE_BEPO")'
             ApiPlatform\Metadata\Patch:
                 security: 'is_granted("ROLE_BEPO")'

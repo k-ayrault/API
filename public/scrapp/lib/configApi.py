@@ -11,11 +11,18 @@ API_URL_LOGIN = f"{API_BASE_URL}/login"
 API_URL_GET_JOUEUR_BY_ID_TM = f"{API_BASE_URL}/joueur/transfermarkt"
 API_URL_INFORMATIONS_PERSONELLES = f"{API_BASE_URL}/informations_personelles"
 API_URL_INFORMATIONS_PERSONELLES_TEMP = f"{API_BASE_URL}/informations_personelles"
-API_URL_GET_PAYS_BY_NOM_FR = f"{API_BASE_URL}/pays/byNom"
-API_URL_PAYS = f"{API_BASE_URL}/pays"
 API_URL_GET_POSTE_BY_ID_TM = f"{API_BASE_URL}/poste/transfermarkt"
+
+
+######
+#   Pays
+######
+API_URL_GET_PAYS = f"{API_BASE_URL}/pays"
+API_URL_POST_PAYS = f"{API_BASE_URL}/pays"
+API_URL_PATCH_PAYS = f"{API_BASE_URL}/pays"
 
 ######
 #   Club
 ######
 API_URL_GET_CLUB = f"{API_BASE_URL}/clubs"
+API_URL_POST_CLUB = f"{API_BASE_URL}/clubs"
