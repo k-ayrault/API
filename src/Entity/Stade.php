@@ -14,32 +14,32 @@ class Stade
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    #[Groups(['read.Club', 'persist.Club'])]
+    #[Groups(['read.Club', 'persist.Club', 'read.Stade'])]
     private $id;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    #[Groups(['read.Club'])]
+    #[Groups(['read.Club', 'read.Stade', 'persist.Stade'])]
     private $nom;
 
     #[ORM\ManyToOne(targetEntity: Pays::class)]
     #[ORM\JoinColumn(referencedColumnName: 'code')]
-    #[Groups(['read.Club'])]
+    #[Groups(['read.Club', 'read.Stade', 'persist.Stade'])]
     private $pays;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    #[Groups(['read.Club'])]
+    #[Groups(['read.Club', 'read.Stade', 'persist.Stade'])]
     private $adresse;
 
     #[ORM\Column(type: 'integer', nullable: true)]
-    #[Groups(['read.Club'])]
+    #[Groups(['read.Club', 'read.Stade', 'persist.Stade'])]
     private $capacite;
 
     #[ORM\Column(type: 'integer', nullable: true)]
-    #[Groups(['read.Club'])]
-    private $annee_construction;
+    #[Groups(['read.Club', 'read.Stade', 'persist.Stade'])]
+    private $anneeConstruction;
 
     #[ORM\OneToMany(targetEntity: ImageStade::class, mappedBy: 'stade', cascade: ['persist', 'remove'], fetch: 'EAGER')]
-    #[Groups(['read.Club'])]
+    #[Groups(['read.Club', 'read.Stade', 'persist.Stade'])]
     private $images;
 
     public function __construct()
@@ -102,12 +102,12 @@ class Stade
 
     public function getAnneeConstruction(): ?int
     {
-        return $this->annee_construction;
+        return $this->anneeConstruction;
     }
 
-    public function setAnneeConstruction(?int $annee_construction): self
+    public function setAnneeConstruction(?int $anneeConstruction): self
     {
-        $this->annee_construction = $annee_construction;
+        $this->anneeConstruction = $anneeConstruction;
 
         return $this;
     }

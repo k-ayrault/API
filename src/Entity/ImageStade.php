@@ -16,7 +16,7 @@ class ImageStade
     private $id;
 
     #[ORM\Column(type: 'string', length: 255)]
-    #[Groups(['read.Club'])]
+    #[Groups(['read.Club', 'persist.Stade'])]
     private $lien;
 
     #[ORM\ManyToOne(targetEntity: Stade::class, inversedBy: 'images', cascade: ['persist'])]
