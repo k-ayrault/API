@@ -9,6 +9,7 @@ from scrapp_func_global import headers
 
 from lib.API.Clients.ClubClient import ClubClient
 from lib.API.Clients.PaysClient import PaysClient
+from lib.API.Clients.StadeClient import StadeClient
 
 from lib.Exception.ClubNotFoundException import ClubNotFoundException
 from lib.Exception.PaysNotFoundException import PaysNotFoundException
@@ -36,6 +37,7 @@ class ScrappClub:
         self.boxInfo = None
 
         self.clubClient = ClubClient()
+        self.stadeClient = StadeClient()
 
         self.lienTransferMarkt = lienTransferMarkt.replace(
             TM_URL_REPLACE, TM_URL_INFO_CLUB)
@@ -326,13 +328,13 @@ class ScrappClub:
 
     def scrapp(self) -> Club:
         # On récupère le club s'il existe via l'id TransferMarkt, sinon on le scrapp
-        try :
-            self.club = self.clubClient.getClubByIdTransferMarkt(self.idTransferMarkt)
-            
+        if self.clubClient.checkIfClubWithIdTransferMarktExist(idTransferMarkt=self.idTransferMarkt) :
+            self.club = self.clubClient.getClubByIdTransferMarkt(idTransferMarkt=self.idTransferMarkt)
+        
             return self.club
-        except ClubNotFoundException as clubNotFound :
-            self.club = Club()
-            self.club.idTransferMarkt = self.idTransferMarkt
+        
+        self.club = Club()
+        self.club.idTransferMarkt = self.idTransferMarkt
 
         self.scrappNomClub()
         self.scrappAdresseClub()
@@ -344,6 +346,8 @@ class ScrappClub:
         self.scrappLogosClub()
         self.club.stade = self.scrappStade.scrapp()
         self.club.stade.pays = self.club.pays
+        if self.club.stade.id is None :
+            self.club.stade = self.stadeClient.postStade(stade=self.club.stade)
 
         self.club = self.clubClient.postClub(self.club)
 

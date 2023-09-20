@@ -10,6 +10,7 @@ from lib.configScrapp import *
 from lib.Classes.Stade import Stade
 from lib.Classes.ImageStade import ImageStade
 
+from lib.API.Clients.StadeClient import StadeClient
 
 class ScrappStade:
 
@@ -22,6 +23,8 @@ class ScrappStade:
         # Div contenant les infos du stade
         self.boxInfo = None
 
+        self.stadeClient = StadeClient()
+        
         self.lienTransferMarkt = lienTransferMarkt.replace(
             TM_URL_REPLACE, TM_URL_INFO_STADE_CLUB)
         
@@ -231,7 +234,7 @@ class ScrappStade:
         return None
 
     def scrapp(self) -> Stade:
-        # TODO : vérifier que le stade n'est pas déjà présent en base
+
 
         self.scrappNomStade()
         self.scrappCapaciteStade()
@@ -239,5 +242,8 @@ class ScrappStade:
         self.scrappImagesStade()
         self.scrappAdresseStade()
 
-        # TODO : sauvegarder en base
+        
+        if self.stadeClient.checkIfStadeByNomAndConstructionExist(nom=self.stade.nom, construction=self.stade.anneeConstruction):
+            self.stade = self.stadeClient.getStadeByNomAndConstruction(nom=self.stade.nom, construction=self.stade.anneeConstruction)
+        
         return self.stade
