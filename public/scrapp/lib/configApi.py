@@ -26,3 +26,9 @@ API_URL_PATCH_PAYS = f"{API_BASE_URL}/pays"
 ######
 API_URL_GET_CLUB = f"{API_BASE_URL}/clubs"
 API_URL_POST_CLUB = f"{API_BASE_URL}/clubs"
+
+######
+#   Stade
+######
+API_URL_GET_STADE = f"{API_BASE_URL}/stades"
+API_URL_POST_STADE = f"{API_BASE_URL}/stades"
