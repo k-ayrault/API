@@ -10,6 +10,10 @@ class ImageStade:
     def toJson(self, schema:str = "") -> dict:
         if schema == 'persist.Joueur':
             json = {}
+        elif schema == 'persist.Stade':
+            json = {
+                "lien": self.lien
+            }
         else:
             json = {
                 "id": self.id,
@@ -22,6 +26,9 @@ class ImageStade:
         if isinstance(json, str) :
             self.uri = json
 
+            return self
+        
+        if isinstance(json, list) :
             return self
         
         self.uri = json['@id'] if json.get('@id') else self.uri

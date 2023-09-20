@@ -31,13 +31,13 @@ class Club:
             json = {
                 "nom": self.nom,
                 "adresse": self.adresse,
-                "pays": f"/api/pays/{self.pays.code}" if self.pays.code is not None else None,
+                "pays": self.pays.uri if self.pays.uri is not None else None,
                 "dateCreation": self.dateCreation,
                 "siteWeb": self.siteWeb,
                 "couleurs": [couleur.toJson(schema=schema) for couleur in self.couleurs],
                 "logos": [logo.toJson(schema=schema) for logo in self.logos],
                 "idTransfermarkt": int(self.idTransferMarkt) if self.idTransferMarkt is not None else None,
-                "stade": f"/api/stade/{self.stade.id}" if self.stade.id is not None else None
+                "stade": self.stade.uri if self.stade.uri is not None else None
             }
         else:
             json = {

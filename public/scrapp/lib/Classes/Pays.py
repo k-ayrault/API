@@ -20,7 +20,7 @@ class Pays:
                 "code": self.code,
                 "drapeau": self.drapeau
             }
-        elif schema == 'persist.Club':
+        elif schema == 'persist.Club' or schema == 'persist.Stade':
             json = self.uri
         else:
             json = {
