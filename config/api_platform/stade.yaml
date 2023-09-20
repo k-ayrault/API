@@ -1,0 +1,28 @@
+resources:
+  App\Entity\Stade:
+    operations:
+      ApiPlatform\Metadata\GetCollection:
+        filters: ["stade.search_specific_club"]
+        normalizationContext:
+          groups: ["read.Stade"]
+        openapi:
+          summary: Retrouve les stades
+          description: ^
+            Retrouve les stades
+          parameters:
+            - in: query
+              name: nom
+              schema:
+                type: string
+              required: false
+              description: Nom du stade
+            - in: query
+              name: construction
+              schema:
+                type: integer
+              required: false
+              description: Année de construction du stade
+      ApiPlatform\Metadata\Post:
+        denormalizationContext:
+          groups: ["persist.Stade"]
+        security: 'is_granted("ROLE_SCRAPP")'
