@@ -31,3 +31,16 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    club.id_transfermarkt_filter:
+        parent: 'api_platform.doctrine.orm.search_filter'
+        arguments: [ {id_transfermarkt: 'exact'} ]        
+        tags:  [ 'api_platform.filter' ]
+    stade.search_specific_club:
+        parent: 'api_platform.doctrine.orm.search_filter'
+        arguments: [ {nom: 'exact', construction: 'exact'} ]        
+        tags:  [ 'api_platform.filter' ]
+    pays.by_name:
+        parent: 'api_platform.doctrine.orm.search_filter'
+        arguments: [ {nom_fr: 'exact'} ]        
+        tags:  [ 'api_platform.filter' ]
