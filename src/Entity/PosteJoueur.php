@@ -15,11 +15,11 @@ class PosteJoueur
     private $id;
 
     #[ORM\Column(type: 'boolean')]
-    #[Groups(['persist.Joueur', 'get.Joueur'])]
+    #[Groups(['persist.Joueur', 'read.Joueur'])]
     private $principal;
 
     #[ORM\ManyToOne(targetEntity: Poste::class, cascade: ["persist"])]
-    #[Groups(['persist.Joueur', 'get.Joueur'])]
+    #[Groups(['persist.Joueur', 'read.Joueur'])]
     private $poste;
 
     #[ORM\ManyToOne(targetEntity: Joueur::class, inversedBy: 'postes')]

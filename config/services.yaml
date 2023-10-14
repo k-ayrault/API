@@ -36,6 +36,10 @@ services:
         parent: 'api_platform.doctrine.orm.search_filter'
         arguments: [ {id_transfermarkt: 'exact'} ]        
         tags:  [ 'api_platform.filter' ]
+    joueur.id_transfermarkt_filter:
+        parent: 'api_platform.doctrine.orm.search_filter'
+        arguments: [ {id_transfermarkt: 'exact'} ]        
+        tags:  [ 'api_platform.filter' ]
     stade.search_specific_club:
         parent: 'api_platform.doctrine.orm.search_filter'
         arguments: [ {nom: 'exact', construction: 'exact'} ]        

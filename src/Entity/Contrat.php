@@ -18,15 +18,15 @@ class Contrat
     private $id;
 
     #[ORM\Column(type: 'date', nullable: true)]
-    #[Groups(['persist.Joueur', 'get.Joueur'])]
+    #[Groups(['persist.Joueur', 'read.Joueur'])]
     private $debut;
 
     #[ORM\Column(type: 'date', nullable: true)]
-    #[Groups(['persist.Joueur', 'get.Joueur'])]
+    #[Groups(['persist.Joueur', 'read.Joueur'])]
     private $fin;
 
     #[ORM\ManyToOne(targetEntity: Club::class, cascade: ['persist', 'remove'], fetch: 'EAGER')]
-    #[Groups(['persist.Joueur', 'get.Joueur'])]
+    #[Groups(['persist.Joueur', 'read.Joueur'])]
     private $club;
 
     #[ORM\ManyToOne(targetEntity: Joueur::class, inversedBy: 'contrats', cascade: ['persist', 'remove'])]

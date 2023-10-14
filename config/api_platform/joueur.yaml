@@ -2,27 +2,24 @@ resources:
     App\Entity\Joueur:
         operations:
             ApiPlatform\Metadata\Post:
-                normalizationContext:
-                    groups: [ 'persist.Joueur' ]
-                #        security: 'is_granted("ROLE_SCRAPP")'
+                denormalizationContext:
+                    groups: ["persist.Joueur"]
+                security: 'is_granted("ROLE_SCRAPP")'
                 openapi:
                     summary: Sauvegarde un joueur
                     description: Sauvegarde un joueur
-            get_joueur_by_id_transfermakt:
-                class: ApiPlatform\Metadata\Get
-                method: GET
-                uriTemplate: /joueur/transfermarkt
-                controller: App\Controller\ApiCustom\GetJoueurByIdTransferMarkt
+            ApiPlatform\Metadata\GetCollection:
+                filters: ["joueur.id_transfermarkt_filter"]
                 normalizationContext:
-                    groups: [ 'get.Joueur' ]
+                groups: ["read.Joueur"]
                 openapi:
-                    summary: Retrouve un joueur via son ID TransferMarkt
-                    description: ^
-                        Retrouve un joueur via son ID TransferMarkt
-                    parameters:
-                        -   in: query
-                            name: id_transfermarkt
-                            schema:
-                                type: integer
-                            required: true
-                            description: ID TransferMarkt du joueur
+                summary: Retrouve les joueurs
+                description: ^
+                    Retrouve les joueurs
+                parameters:
+                    - in: query
+                      name: id_transfermarkt
+                      schema:
+                          type: integer
+                      required: false
+                      description: ID TransferMarkt du joueur

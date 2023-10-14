@@ -18,42 +18,42 @@ class InformationsPersonelles
     private $id;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    #[Groups(['persist.Joueur', 'get.Joueur', 'persist.InformationsPersonelles' , 'persist.InformationsPersonellesTemp'])]
+    #[Groups(['persist.Joueur', 'read.Joueur', 'persist.InformationsPersonelles' , 'persist.InformationsPersonellesTemp'])]
     private $nom_complet;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    #[Groups(['persist.Joueur', 'get.Joueur', 'persist.InformationsPersonelles' , 'persist.InformationsPersonellesTemp'])]
+    #[Groups(['persist.Joueur', 'read.Joueur', 'persist.InformationsPersonelles' , 'persist.InformationsPersonellesTemp'])]
     private $nom;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    #[Groups(['persist.Joueur', 'get.Joueur', 'persist.InformationsPersonelles' , 'persist.InformationsPersonellesTemp'])]
+    #[Groups(['persist.Joueur', 'read.Joueur', 'persist.InformationsPersonelles' , 'persist.InformationsPersonellesTemp'])]
     private $prenom;
 
     #[ORM\Column(type: 'date', nullable: true)]
-    #[Groups(['persist.Joueur', 'get.Joueur', 'persist.InformationsPersonelles' , 'persist.InformationsPersonellesTemp'])]
+    #[Groups(['persist.Joueur', 'read.Joueur', 'persist.InformationsPersonelles' , 'persist.InformationsPersonellesTemp'])]
     private $date_naissance;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    #[Groups(['persist.Joueur', 'get.Joueur', 'persist.InformationsPersonelles' , 'persist.InformationsPersonellesTemp'])]
+    #[Groups(['persist.Joueur', 'read.Joueur', 'persist.InformationsPersonelles' , 'persist.InformationsPersonellesTemp'])]
     private $meilleur_pied;
 
     #[ORM\Column(type: 'integer', nullable: true)]
-    #[Groups(['persist.Joueur', 'get.Joueur', 'persist.InformationsPersonelles' , 'persist.InformationsPersonellesTemp'])]
+    #[Groups(['persist.Joueur', 'read.Joueur', 'persist.InformationsPersonelles' , 'persist.InformationsPersonellesTemp'])]
     private $taille;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    #[Groups(['persist.Joueur', 'get.Joueur', 'persist.InformationsPersonelles' , 'persist.InformationsPersonellesTemp'])]
+    #[Groups(['persist.Joueur', 'read.Joueur', 'persist.InformationsPersonelles' , 'persist.InformationsPersonellesTemp'])]
     private $equipementier;
 
     #[ORM\JoinTable(name: 'nationnalites_joueur')]
     #[ORM\JoinColumn(name: 'informations_personelles_id', referencedColumnName: 'id')]
     #[ORM\InverseJoinColumn(name: 'pays_id', referencedColumnName: 'code')]
     #[ORM\ManyToMany(targetEntity: Pays::class, cascade: ['persist'], fetch: 'EAGER')]
-    #[Groups(['persist.Joueur', 'get.Joueur', 'persist.InformationsPersonelles' , 'persist.InformationsPersonellesTemp'])]
+    #[Groups(['persist.Joueur', 'read.Joueur', 'persist.InformationsPersonelles' , 'persist.InformationsPersonellesTemp'])]
     private $nationnalites;
 
     #[ORM\Column(type: 'boolean')]
-    #[Groups(['persist.Joueur', 'get.Joueur', 'persist.InformationsPersonelles' , 'persist.InformationsPersonellesTemp'])]
+    #[Groups(['persist.Joueur', 'read.Joueur', 'persist.InformationsPersonelles' , 'persist.InformationsPersonellesTemp'])]
     private $retraite_joueur;
 
     public function __construct()
